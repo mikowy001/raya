@@ -1,28 +1,23 @@
-#include "raylib.h"
+#include "./raya.h"
 
-#include <stdlib.h>         
-#include <math.h>           
-#include <vector>
+int main(int argc, char** argv) {
+	// Możesz coś fajnego porobić z argumentami programu
+	(void)argc;
+	(void)argv;
 
-struct atom {
-	Vector2 pos;
-	Vector2 force;
-	int charge;
-    int rot;
-	int size;
-};
-
-int main(void)
-{
     const int screenWidth = 800;
     const int screenHeight = 800;
+
+	int x = 0;
+	int y = 0;
+	int r = 0;
 	
-	
-	//float size = 25;
+	float size = 25;
 	float movementSpeed = 1.5;
 	float rotationSpeed = 2.5;
 	
-	//atom atomsList[] = HERE DO AN RESIZABLE ARRAY OF "atom" 
+	atom* atomsList;
+	CreateAtomArray(&atomsList, 0);
 
 	bool isPaused = false;
 	double startTime = GetTime();
@@ -36,10 +31,7 @@ int main(void)
 
     SetTargetFPS(60);
 	
-    while (!WindowShouldClose())   
-    {	
-
-
+    while (!WindowShouldClose()) {	
 		if(IsKeyPressed(KEY_P)){
 			if(isPaused) {
 				totalPausedDuration += GetTime() - pausedTime;
@@ -52,7 +44,7 @@ int main(void)
 		}
 
 		double elapsedTime;
-		if(isPaused){
+		if(isPaused) {
 			elapsedTime = pausedTime - startTime - totalPausedDuration;
 		}
 		else {
@@ -61,14 +53,13 @@ int main(void)
 		
 
 		if(!isPaused) {
+			if(IsKeyDown(KEY_W)) { y = y - movementSpeed; }
+			if(IsKeyDown(KEY_S)) { y = y + movementSpeed; }
+			if(IsKeyDown(KEY_A)) { x = x - movementSpeed; }
+			if(IsKeyDown(KEY_D)) { x = x + movementSpeed; }
 
-			if (IsKeyDown(KEY_W)) y = y - movementSpeed;
-			if (IsKeyDown(KEY_S)) y = y + movementSpeed;
-			if (IsKeyDown(KEY_A)) x = x - movementSpeed;
-			if (IsKeyDown(KEY_D)) x = x + movementSpeed;
-
-			if (IsKeyDown(KEY_Q)) r = r - rotationSpeed;
-			if (IsKeyDown(KEY_E)) r = r + rotationSpeed;
+			if(IsKeyDown(KEY_Q)) { r = r - rotationSpeed; }
+			if(IsKeyDown(KEY_E)) { r = r + rotationSpeed; }
 		}
 
    	    BeginDrawing();
@@ -85,13 +76,13 @@ int main(void)
         DrawRectanglePro((Rectangle){x, y, size, size}, (Vector2){size/2, size / 2}, r, (Color){255, 0, 0, 255 });
  
         EndDrawing();
-		
-		
     }
 
     UnloadTexture(pauseIcon);
 
     CloseWindow();        
+
+	DestroyAtomArray(&atomsList);
 
     return 0;
 }
