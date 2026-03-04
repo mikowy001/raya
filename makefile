@@ -3,7 +3,7 @@ TARGET_DIR = compiled
 OBJ_DIR = obj
 
 CC = gcc
-CFLAGS = -Wall -Wextra -I./src
+CFLAGS = -Werror -Wall -Wextra -I./src
 LIBS = -lraylib 
 
 SRCS := $(shell find src -name "*.c")

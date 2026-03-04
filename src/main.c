@@ -1,6 +1,17 @@
-#include "./raya.h"
 #include <raylib.h>
 
+#include <stdlib.h>
+#include <assert.h>
+
+typedef struct {
+	Vector2 pos;
+	Vector2 force;
+	int charge;
+    int rot;
+	float size;
+} atom;
+
+size_t atomCount = 0;
 
 int main(int argc, char** argv) {
 	(void)argc;
@@ -12,12 +23,14 @@ int main(int argc, char** argv) {
 	float movementSpeed = 1.5;
 	float rotationSpeed = 2.5;
 	
-	atom* atomsList;
-	CreateAtomArray(&atomsList, 1);
+	atom* atomsList = malloc(++atomCount * sizeof(atom));
+	if(!atomsList) {
+		assert("ERROR: MALLOC FUCKING EXPLODED");
+		exit(EXIT_FAILURE);
+	}
 	
-	
-	atomsList[1].pos = (Vector2){100, 100};
-	atomsList[1].size = 1;
+	atomsList[0].pos = (Vector2){100, 100};
+	atomsList[0].size = 1;
 	
 	int selectorSize = 50;
 
@@ -29,10 +42,9 @@ int main(int argc, char** argv) {
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(screenWidth, screenHeight, "raya sim");
 	
-
     SetTargetFPS(60);
 	
-    while (!WindowShouldClose()) {	
+    while(!WindowShouldClose()) {	
 		if(IsKeyPressed(KEY_P)){
 			if(isPaused) {
 				totalPausedDuration += GetTime() - pausedTime;
@@ -52,9 +64,9 @@ int main(int argc, char** argv) {
 			elapsedTime = GetTime() - startTime - totalPausedDuration;
 		}
 		
-		int x = atomsList[1].pos.x;
-		int y = atomsList[1].pos.y;
-		int r = atomsList[1].rot;
+		int x = atomsList[0].pos.x;
+		int y = atomsList[0].pos.y;
+		int r = atomsList[0].rot;
 
 		if(!isPaused) {
 			if(IsKeyDown(KEY_W)) { y = y - movementSpeed; }
@@ -66,9 +78,6 @@ int main(int argc, char** argv) {
 			if(IsKeyDown(KEY_E)) { r = r + rotationSpeed; }
 		}
 	
-
-
-
    	    BeginDrawing();
 
         ClearBackground(BLACK);
@@ -76,15 +85,15 @@ int main(int argc, char** argv) {
 		DrawText(TextFormat("Simulation time %.1f", elapsedTime), 25, 25, 16, WHITE);
 		DrawText(TextFormat("dt: %.3f ms", GetFrameTime() * 1000), 25, 50, 16, WHITE);
 		
-		if(isPaused){
-			DrawText("Paused!        Press P to unpause.", 225, 25, 16, RED);
-		} else {
+		if(!isPaused) {
 			DrawCircleLinesV(GetMousePosition(), selectorSize, WHITE);
+		} else {
+			DrawText("Paused! Press P to unpause.", 225, 25, 16, RED);
 		}
 
 
 		
-		for(int i = 0; i< sizeof(atomsList); i++){
+		for(int i = 0; i < (int)atomCount; i++){
         	DrawRectanglePro((Rectangle){atomsList[i].pos.x, atomsList[i].pos.y, atomsList[i].size, atomsList[i].size}, 
 					(Vector2){atomsList[i].size/2, atomsList[i].size / 2}, 
 					atomsList[i].rot, 
@@ -96,7 +105,7 @@ int main(int argc, char** argv) {
 
     CloseWindow();        
 
-	DestroyAtomArray(&atomsList);
+	free(atomsList);
 
     return 0;
 }
