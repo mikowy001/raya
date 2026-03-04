@@ -13,11 +13,11 @@ int main(int argc, char** argv) {
 	float rotationSpeed = 2.5;
 	
 	atom* atomsList;
-	CreateAtomArray(&atomsList, 0);
+	CreateAtomArray(&atomsList, 1);
 	
 	
 	atomsList[1].pos = (Vector2){100, 100};
-	atomsList[1].size = 25;
+	atomsList[1].size = 1;
 	
 	int selectorSize = 50;
 

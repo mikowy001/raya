@@ -3,14 +3,13 @@
 
 #include <raylib.h>
 #include <stdlib.h>
-#include <private/arrayapi.h>
 
 typedef struct {
 	Vector2 pos;
 	Vector2 force;
 	int charge;
     int rot;
-	int size;
+	float size;
 } atom;
 
 void CreateAtomArray(atom** Array, size_t initialSize);
