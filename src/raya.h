@@ -1,9 +1,9 @@
-// To jak nie zdefiniowane(czyli jak pierwszy raz)
 #ifndef RAYA_H
 #define RAYA_H
 
 #include <raylib.h>
 #include <stdlib.h>
+#include <private/arrayapi.h>
 
 typedef struct {
 	Vector2 pos;
