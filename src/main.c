@@ -19,13 +19,13 @@ size_t atomCount = 0;
 
 bool isPaused = false;
 
-void atomSpawn(int charge, int rotation) {
+void atomSpawn(Vector2 pos, int charge, int rotation) {
 	atomsList = realloc(atomsList, (atomCount + 1) * sizeof(atom));
 	if(!atomsList) {
-		assert("ERROR: MALLOC FUCKING EXPLODED");
+		assert("ERROR: MALLOC EXPLODED: check atom array setup in atomSpawn");
 		exit(EXIT_FAILURE);
 	}
-	atomsList[atomCount-1].pos = (Vector2){300, 300};
+	atomsList[atomCount-1].pos = pos;
 	atomsList[atomCount-1].charge = charge;
 	atomsList[atomCount-1].rot = rotation;
 
@@ -65,39 +65,48 @@ void circleSelect(){
 	
 }
 
+
+
+int timer(double delay) {  //returns 2 when the time in seconds that was given as an argument reaches 0 
+	double timeDelay = GetTime() + delay;
+	while(GetTime() <= timeDelay){
+		return 67;
+	}
+	return 2;
+
+}
+
 void mouseActions(){
 
 	// "A" key for spawning an atom
 	short spawningCharge = 1;
-	short state = 0;
+	unsigned short state = 0;
 	if(IsKeyPressed(KEY_A)){
 		state = 1;
-		state = timer();
+		state = timer(10);
 	}
 	if(state == 1) {
+
 		if(IsKeyPressed(KEY_ONE)){
 			spawningCharge = 1;
+			TraceLog(LOG_INFO, "1");   
 		}
 		if(IsKeyPressed(KEY_TWO)){
 			spawningCharge = 0;
+			TraceLog(LOG_INFO, "2");   
 		}
 		if(IsKeyPressed(KEY_THREE)){
 			spawningCharge = -1;
+			TraceLog(LOG_INFO, "3");   
 		}
+	} else if (state == 2) {
+		atomSpawn(GetMousePosition(), spawningCharge, 0);
 	}
 }
 
 
 
 
-
-int timer(double delay) {  //returns false when the time in seconds that was given as an argument reaches 0 
-	double timeSinceStart = GetTime();
-	double timeDelay = GetTime() + delay;
-	if(timeSinceStart >= timeDelay){
-		return 0;
-	}
-}
 
 
 
@@ -112,12 +121,11 @@ int main(int argc, char** argv) {
 	float movementSpeed = 1.5;
 	float rotationSpeed = 2.5;
 	
-	atomSpawn(1, 0);
+	atomSpawn((Vector2){250, 250}, 1, 0);
 	
 	atomsList[0].pos = (Vector2){100, 100};
 	atomsList[0].size = 25;
 
-	int selectorSize = 50;
 
 	double startTime = GetTime();
 	double pausedTime = 0.0;
@@ -126,7 +134,7 @@ int main(int argc, char** argv) {
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(screenWidth, screenHeight, "raya sim");
 	
-	SetTraceLogLevel(LOG_INFO);  
+	SetTraceLogLevel(LOG_INFO);  // some thhing for logs
 
     SetTargetFPS(60);
 	
