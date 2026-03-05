@@ -53,11 +53,32 @@ void atomSpawn(int charge, int rotation) {
 }
 
 void circleSelect(){
-	selectorSize *= GetMouseWheelMove();
+	
+	if(selectorSize >= 2 ){
+		selectorSize += GetMouseWheelMove();
+	} else {
+		selectorSize = 2;
+	}
 	if(!isPaused){
 		DrawCircleLinesV(GetMousePosition(), selectorSize, WHITE);
+		//TraceLog(LOG_INFO, "mousewheel: %d", selectorSize);   debug for printing out the selection circle size
 	}
 	
+}
+
+void mouseActions(){
+	if(IsKeyPressed(KEY_A)){
+		int spawningCharge = 1;
+		if(IsKeyPressed(KEY_ONE)){
+			spawningCharge = 1;
+		}
+		else if(IsKeyPressed(KEY_TWO)){
+			spawningCharge = 0;
+		}
+		else if(IsKeyPressed(KEY_THREE)){
+			spawningCharge = -1;
+		}
+	}
 }
 
 int main(int argc, char** argv) {
@@ -84,6 +105,8 @@ int main(int argc, char** argv) {
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(screenWidth, screenHeight, "raya sim");
 	
+	SetTraceLogLevel(LOG_INFO);  
+
     SetTargetFPS(60);
 	
     while(!WindowShouldClose()) {	
@@ -97,6 +120,8 @@ int main(int argc, char** argv) {
 				isPaused = true;
 			}
 		}
+		
+		
 
 		double elapsedTime;
 		if(isPaused) {
@@ -108,10 +133,10 @@ int main(int argc, char** argv) {
 		
 		
 		if(!isPaused) {
-			if(IsKeyDown(KEY_W)) { atomsList[0].pos.y = atomsList[0].pos.y - movementSpeed; }
-			if(IsKeyDown(KEY_S)) { atomsList[0].pos.y = atomsList[0].pos.y + movementSpeed; }
-			if(IsKeyDown(KEY_A)) { atomsList[0].pos.x = atomsList[0].pos.x  - movementSpeed; }
-			if(IsKeyDown(KEY_D)) { atomsList[0].pos.x  = atomsList[0].pos.x  + movementSpeed; }
+			if(IsKeyDown(KEY_UP)) { atomsList[0].pos.y = atomsList[0].pos.y - movementSpeed; }
+			if(IsKeyDown(KEY_DOWN)) { atomsList[0].pos.y = atomsList[0].pos.y + movementSpeed; }
+			if(IsKeyDown(KEY_LEFT)) { atomsList[0].pos.x = atomsList[0].pos.x  - movementSpeed; }
+			if(IsKeyDown(KEY_RIGHT)) { atomsList[0].pos.x  = atomsList[0].pos.x  + movementSpeed; }
 
 			if(IsKeyDown(KEY_Q)) { atomsList[0].rot = atomsList[0].rot - rotationSpeed; }
 			if(IsKeyDown(KEY_E)) { atomsList[0].rot = atomsList[0].rot + rotationSpeed; }
