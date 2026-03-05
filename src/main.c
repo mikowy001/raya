@@ -1,9 +1,9 @@
 #include <raylib.h>
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <math.h>
 
 typedef struct {
 	Vector2 pos;
@@ -20,22 +20,25 @@ size_t atomCount = 0;
 
 bool isPaused = false;
 
+float timeUntilChoosingDecays = 20.0f; // time in seconds	
+float timerTime = 20.0f;
+
 void atomSpawn(Vector2 pos, int charge, int rotation) {
 	atomsList = realloc(atomsList, (atomCount + 1) * sizeof(atom));
 	if(!atomsList) {
 		assert("ERROR: MALLOC EXPLODED: check atom array setup in atomSpawn");
 		exit(EXIT_FAILURE);
 	}
-	atomsList[atomCount-1].pos = pos;
-	atomsList[atomCount-1].charge = charge;
-	atomsList[atomCount-1].rot = rotation;
+	atomsList[atomCount].pos = pos;
+	atomsList[atomCount].charge = charge;
+	atomsList[atomCount].rot = rotation;
 
 	switch(charge){
 		case 1:
-			atomsList[atomCount-1].size = 25;
+			atomsList[atomCount].size = 25;
 			break;
 		case 0:
-			atomsList[atomCount-1].size = 25;
+			atomsList[atomCount].size = 25;
 			break;
 		case -1:
 			atomsList[atomCount].size = 10;
@@ -66,44 +69,58 @@ void circleSelect(){
 	
 }
 
-bool timer(float delay){
-	if(delay > 0){
-		delay -= GetFrameTime();
-		return false;
-	} else if (delay < 0) {
-		delay = 0;
-		return true;
-	}
-}
+//bool timer(float delay){
+//	if(delay > 0){
+//		delay -= GetFrameTime();
+//		return false;
+//	} else if (delay < 0) {
+//		delay = 0;
+//		return true;
+//	}
+//}
 
 void mouseActions(){
 
 	// "A" key for spawning an atom
 	short spawningCharge = 1;
-	unsigned short state = 0;
+	bool AwasPressed;
+	bool chosen;
 	if(IsKeyPressed(KEY_A)){
-		state = 1;
+		AwasPressed = true;
+		TraceLog(LOG_INFO, "A WAS PRESSED!!!");
 	}
-	while(state == 1) {
+	if(AwasPressed) {
 		
-		if(IsTimerFinished(10.0f, GetTime())) {
-			state = 2;
+		
+		timerTime -= GetFrameTime(); 
+
+		if(timerTime < 0) {
+			AwasPressed = false;
+			timerTime = 20.0f;
 		}
+
 		if(IsKeyPressed(KEY_ONE)){
 			spawningCharge = 1;
-			TraceLog(LOG_INFO, "1");   
+			TraceLog(LOG_INFO, "1");  
+			chosen = true;
+			AwasPressed = false;
 		}
 		if(IsKeyPressed(KEY_TWO)){
 			spawningCharge = 0;
 			TraceLog(LOG_INFO, "2");   
+			chosen = true;
+			AwasPressed = false;
 		}
 		if(IsKeyPressed(KEY_THREE)){
 			spawningCharge = -1;
 			TraceLog(LOG_INFO, "3");   
+			chosen = true;
+			AwasPressed = false;
 		}
 	}  
-	if (state == 2) {
+	if (chosen) {
 		atomSpawn(GetMousePosition(), spawningCharge, 0);
+		chosen = false;
 	}
 }
 
@@ -133,6 +150,7 @@ int main(int argc, char** argv) {
 	double startTime = GetTime();
 	double pausedTime = 0.0;
 	double totalPausedDuration = 0.0;
+	
 
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(screenWidth, screenHeight, "raya sim");
@@ -172,6 +190,8 @@ int main(int argc, char** argv) {
 
 			if(IsKeyDown(KEY_Q)) { atomsList[0].rot = atomsList[0].rot - rotationSpeed; }
 			if(IsKeyDown(KEY_E)) { atomsList[0].rot = atomsList[0].rot + rotationSpeed; }
+
+			mouseActions();
 		}
 
 
