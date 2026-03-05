@@ -17,6 +17,9 @@ typedef struct {
 
 //GLOBAL SETTINGS !!!
 int mouseWheelSensivity = 10;
+//arrow moving
+float movementSpeed = 1.5;
+float rotationSpeed = 2.5;
 //
 
 
@@ -70,13 +73,16 @@ void circleSelect(){
 		DrawCircleLinesV(circleCenter, circleSelectorSize, WHITE);
 		//TraceLog(LOG_INFO, "mousewheel: %d", selectorSize);   debug for printing out the selection circle size
 		
+		int selected = 0;
 		if(IsKeyPressed(KEY_S)){
 			for(int i = 0; i < (int)atomCount; i++){
 				atomsList[i].selected = false;
 				if(CheckCollisionPointCircle(atomsList[i].pos, circleCenter, circleSelectorSize)){
 					atomsList[i].selected = true;
+					selected++;
 				}
 			}
+			TraceLog(LOG_INFO, "t:%.1f    Selected %d atoms", GetTime(), selected);
 		}
 		
 	}
@@ -86,15 +92,6 @@ void circleSelect(){
 	
 }
 
-//bool timer(float delay){
-//	if(delay > 0){
-//		delay -= GetFrameTime();
-//		return false;
-//	} else if (delay < 0) {
-//		delay = 0;
-//		return true;
-//	}
-//}
 
 
 void atomSpawning() {
@@ -142,11 +139,56 @@ void atomSpawning() {
 	}
 }
 
+void arrowMoving(){
+		if(!isPaused) {
 
+			if(IsKeyDown(KEY_UP)) {
+				for(int i = 0; i < (int)atomCount; i++){
+						if(atomsList[i].selected == true) {
+							atomsList[i].pos.y = atomsList[i].pos.y - movementSpeed;
+						}
+				}
+			}
+			if(IsKeyDown(KEY_DOWN)) {
+				for(int i = 0; i < (int)atomCount; i++){
+						if(atomsList[i].selected == true) {
+							atomsList[i].pos.y = atomsList[i].pos.y + movementSpeed;
+						}
+				}
+			}
+			if(IsKeyDown(KEY_LEFT)) {
+				for(int i = 0; i < (int)atomCount; i++){
+						if(atomsList[i].selected == true) {
+							atomsList[i].pos.x = atomsList[i].pos.x - movementSpeed;
+						}
+				}
+			}
+			if(IsKeyDown(KEY_RIGHT)) {
+				for(int i = 0; i < (int)atomCount; i++){
+						if(atomsList[i].selected == true) {
+							atomsList[i].pos.x = atomsList[i].pos.x + movementSpeed;
+						}
+				}
+			}
+
+
+
+			if(IsKeyDown(KEY_Q)) { 
+				atomsList[0].rot = atomsList[0].rot - rotationSpeed; 
+			}
+			if(IsKeyDown(KEY_E)) { 
+				atomsList[0].rot = atomsList[0].rot + rotationSpeed; 
+			}
+
+		}
+}
 
 void userActions(){
+
 	atomSpawning();
 	circleSelect();
+	arrowMoving();
+
 }
 
 
@@ -159,8 +201,6 @@ int main(int argc, char** argv) {
     const int screenWidth = 800;
     const int screenHeight = 800;
 
-	float movementSpeed = 1.5;
-	float rotationSpeed = 2.5;
 	
 	atomSpawn((Vector2){250, 250}, 1, 0);
 	
@@ -205,16 +245,6 @@ int main(int argc, char** argv) {
 		}
 		
 		
-		if(!isPaused) {
-			if(IsKeyDown(KEY_UP)) { atomsList[0].pos.y = atomsList[0].pos.y - movementSpeed; }
-			if(IsKeyDown(KEY_DOWN)) { atomsList[0].pos.y = atomsList[0].pos.y + movementSpeed; }
-			if(IsKeyDown(KEY_LEFT)) { atomsList[0].pos.x = atomsList[0].pos.x  - movementSpeed; }
-			if(IsKeyDown(KEY_RIGHT)) { atomsList[0].pos.x  = atomsList[0].pos.x  + movementSpeed; }
-
-			if(IsKeyDown(KEY_Q)) { atomsList[0].rot = atomsList[0].rot - rotationSpeed; }
-			if(IsKeyDown(KEY_E)) { atomsList[0].rot = atomsList[0].rot + rotationSpeed; }
-
-		}
 
 
 	
@@ -247,8 +277,11 @@ int main(int argc, char** argv) {
 					origin,
 					atomsList[i].rot, 
 					color);
+
 			if(atomsList[i].selected == true) {
-				DrawRectangleLinesEx(rectangle, 2.0f, YELLOW);
+				DrawRectangleLinesEx((Rectangle){atomsList[i].pos.x - atomsList[i].size/2,
+										atomsList[i].pos.y - atomsList[i].size/2,
+										atomsList[i].size, atomsList[i].size}, 2.0f, YELLOW);
 			}
 
  		}
