@@ -70,7 +70,7 @@ void circleSelect(){
 int timer(double delay) {  //returns 2 when the time in seconds that was given as an argument reaches 0 
 	double timeDelay = GetTime() + delay;
 	while(GetTime() <= timeDelay){
-		return 67;
+		return 1;
 	}
 	return 2;
 
