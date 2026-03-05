@@ -9,7 +9,7 @@ typedef struct {
 	Vector2 pos;
 	Vector2 force;
 	int charge;
-    int rot;
+	int rot;
 	float size;
 	bool selected;
 } atom;
@@ -18,7 +18,6 @@ typedef struct {
 //GLOBAL SETTINGS !!!
 int mouseWheelSensivity = 10;
 //
-
 
 atom* atomsList = NULL;
 size_t atomCount = 0;
@@ -38,15 +37,18 @@ void atomSpawn(Vector2 pos, int charge, int rotation) {
 	atomsList[atomCount].rot = rotation;
 
 	switch(charge){
-		case 1:
+		case 1: {
 			atomsList[atomCount].size = 25;
 			break;
-		case 0:
+		}
+		case 0: {
 			atomsList[atomCount].size = 25;
 			break;
-		case -1:
+		}
+		case -1: {
 			atomsList[atomCount].size = 10;
 			break;
+		}
 		default: {
 			assert("ERROR: INVALID CHARGE AT SPAWNING ATOM");
 			exit(EXIT_FAILURE);
@@ -60,11 +62,10 @@ void atomSpawn(Vector2 pos, int charge, int rotation) {
 }
 
 void circleSelect(){
-		if(!isPaused){
-			if(circleSelectorSize >= 2 ){
-				circleSelectorSize += GetMouseWheelMove() * mouseWheelSensivity;
-			} else {
-			circleSelectorSize = 2;
+		if(!isPaused) {
+			circleSelectorSize += GetMouseWheelMove() * mouseWheelSensivity;
+			if(circleSelectorSize < 2) {
+				circleSelectorSize = 2;
 			}
 		Vector2 circleCenter = GetMousePosition();
 		DrawCircleLinesV(circleCenter, circleSelectorSize, WHITE);
@@ -106,19 +107,17 @@ void atomSpawning() {
 	// "A" key for spawning an atom
 	
 	static double selectionStartTime = 0.0f;  
-    static const float selectionDuration = 10.0f;  
+	static const float selectionDuration = 10.0f;  
 	
 	short spawningCharge = 1;
 	static bool AwasPressed;
 	static bool chosen;
 
-	if(IsKeyPressed(KEY_A)){
+	if(IsKeyPressed(KEY_A)) {
 		AwasPressed = true;
 		selectionStartTime = GetTime();
 	}
 	if(AwasPressed) {
-		
-
 		double elapsed = GetTime() - selectionStartTime;
 		if(elapsed >= selectionDuration) {
 			AwasPressed = false;
@@ -142,7 +141,7 @@ void atomSpawning() {
 		AwasPressed = false;
 		atomSpawn(GetMousePosition(), spawningCharge, 0);
 		chosen = false;
-		TraceLog(LOG_INFO, "t:%.1f    Spawned %d atoms, charge: %d", GetTime(), 1, spawningCharge);
+		TraceLog(LOG_INFO, "t:%.1f Spawned %d atoms, charge: %d", GetTime(), 1, spawningCharge);
 	}
 }
 
@@ -160,8 +159,8 @@ int main(int argc, char** argv) {
 	(void)argc;
 	(void)argv;
 
-    const int screenWidth = 800;
-    const int screenHeight = 800;
+	const int screenWidth = 800;
+	const int screenHeight = 800;
 
 	float movementSpeed = 1.5;
 	float rotationSpeed = 2.5;
@@ -180,14 +179,14 @@ int main(int argc, char** argv) {
 	
 
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
-    InitWindow(screenWidth, screenHeight, "raya sim");
+	InitWindow(screenWidth, screenHeight, "raya sim");
 	
 	SetTraceLogLevel(LOG_INFO);  // some thhing for logs
 
-    SetTargetFPS(60);
+	SetTargetFPS(60);
 	
-    while(!WindowShouldClose()) {	
-		if(IsKeyPressed(KEY_P)){
+	while(!WindowShouldClose()) {	
+		if(IsKeyPressed(KEY_P)) {
 			if(isPaused) {
 				totalPausedDuration += GetTime() - pausedTime;
 				isPaused = false;
@@ -198,8 +197,6 @@ int main(int argc, char** argv) {
 			}
 		}
 		
-		
-
 		double elapsedTime;
 		if(isPaused) {
 			elapsedTime = pausedTime - startTime - totalPausedDuration;
@@ -222,9 +219,9 @@ int main(int argc, char** argv) {
 
 
 	
-   	    BeginDrawing();
+   		BeginDrawing();
 
-        ClearBackground(BLACK);
+		ClearBackground(BLACK);
 
 
 
@@ -242,11 +239,10 @@ int main(int argc, char** argv) {
 					color = (Color){255, 0, 0, 255};
 					break;
 			}
-        	DrawRectanglePro((Rectangle){atomsList[i].pos.x, atomsList[i].pos.y, atomsList[i].size, atomsList[i].size}, 
+			DrawRectanglePro((Rectangle){atomsList[i].pos.x, atomsList[i].pos.y, atomsList[i].size, atomsList[i].size}, 
 					(Vector2){atomsList[i].size/2, atomsList[i].size / 2}, 
 					atomsList[i].rot, 
 					color);
-			
  		}
 		
 		userActions();
@@ -260,13 +256,13 @@ int main(int argc, char** argv) {
 			DrawText("Paused! Press P to unpause.", 225, 25, 16, RED);
 		}
 
-        EndDrawing();
-    }
+		EndDrawing();
+	}
 
 
-    CloseWindow();        
+	CloseWindow();		
 
 	free(atomsList);
 
-    return 0;
+	return 0;
 }
