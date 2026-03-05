@@ -9,9 +9,33 @@ typedef struct {
 	int charge;
     int rot;
 	float size;
+	bool selected;
 } atom;
 
 size_t atomCount = 0;
+
+void spawnAtom(int charge, int rotation) {
+	atom* atomsList = malloc(++atomCount * sizeof(atom));
+	if(!atomsList) {
+		assert("ERROR: MALLOC FUCKING EXPLODED");
+		exit(EXIT_FAILURE);
+	}
+	atomsList[atomCount-1].pos = (Vector2){300, 300};
+	atomsList[atomCount-1].charge = charge;
+	atomsList[atomCount-1].rot = rotation;
+
+	switch(charge){
+		case 1:
+			atomsList[atomCount-1].size = 25;
+		case 0:
+			atomsList[atomCount-1].size = 25;
+		case -1:
+			atomsList[atomCount-1].size = 10;
+
+	}
+
+
+}
 
 int main(int argc, char** argv) {
 	(void)argc;
@@ -23,17 +47,12 @@ int main(int argc, char** argv) {
 	float movementSpeed = 1.5;
 	float rotationSpeed = 2.5;
 	
-	atom* atomsList = malloc(++atomCount * sizeof(atom));
-	if(!atomsList) {
-		assert("ERROR: MALLOC FUCKING EXPLODED");
-		exit(EXIT_FAILURE);
-	}
 	
 	atomsList[0].pos = (Vector2){100, 100};
 	atomsList[0].size = 25;
 
-	atomsList[1].pos = (Vector2){100, 100};
-	atomsList[1].size = 25;
+	//atomsList[1].pos = (Vector2){100, 100};
+	//atomsList[1].size = 25;
 
 	
 	int selectorSize = 50;
@@ -83,14 +102,6 @@ int main(int argc, char** argv) {
 
         ClearBackground(BLACK);
 
-		DrawText(TextFormat("Simulation time %.1f", elapsedTime), 25, 25, 16, WHITE);
-		DrawText(TextFormat("dt: %.3f ms", GetFrameTime() * 1000), 25, 50, 16, WHITE);
-		
-		if(!isPaused) {
-			DrawCircleLinesV(GetMousePosition(), selectorSize, WHITE);
-		} else {
-			DrawText("Paused! Press P to unpause.", 225, 25, 16, RED);
-		}
 
 
 		
@@ -100,6 +111,16 @@ int main(int argc, char** argv) {
 					atomsList[i].rot, 
 					(Color){255, 0, 0, 255 });
  		}
+		
+		DrawText(TextFormat("Simulation time %.1f", elapsedTime), 25, 25, 16, WHITE);
+		DrawText(TextFormat("dt: %.3f ms", GetFrameTime() * 1000), 25, 50, 16, WHITE);
+		
+		if(!isPaused) {
+			DrawCircleLinesV(GetMousePosition(), selectorSize, WHITE);
+		} else {
+			DrawText("Paused! Press P to unpause.", 225, 25, 16, RED);
+		}
+
         EndDrawing();
     }
 
