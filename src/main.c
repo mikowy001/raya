@@ -78,7 +78,7 @@ void circleSelect(){
 					atomsList[i].pos.y >= circleCenter.y - circleSelectorSize && 
 					atomsList[i].pos.y >= circleCenter.y + circleSelectorSize){
 					
-					TraceLog(LOG_INFO, ""WYKRYTO); // tutaj trzeba zrobic arrayke ktora bedzie trzymac zaznaczone atomy w sobie chyba
+					TraceLog(LOG_INFO, "WYKRYTO"); // tutaj trzeba zrobic arrayke ktora bedzie trzymac zaznaczone atomy w sobie chyba
 				}
 			}
 		}
