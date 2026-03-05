@@ -17,7 +17,6 @@ typedef struct {
 atom* atomsList = NULL;
 size_t atomCount = 0;
 
-int selectorSize = 16;
 bool isPaused = false;
 
 void atomSpawn(int charge, int rotation) {
@@ -53,7 +52,7 @@ void atomSpawn(int charge, int rotation) {
 }
 
 void circleSelect(){
-	
+	int selectorSize = 16;
 	if(selectorSize >= 2 ){
 		selectorSize += GetMouseWheelMove();
 	} else {
@@ -67,19 +66,41 @@ void circleSelect(){
 }
 
 void mouseActions(){
+
+	// "A" key for spawning an atom
+	short spawningCharge = 1;
+	short state = 0;
 	if(IsKeyPressed(KEY_A)){
-		int spawningCharge = 1;
+		state = 1;
+		state = timer();
+	}
+	if(state == 1) {
 		if(IsKeyPressed(KEY_ONE)){
 			spawningCharge = 1;
 		}
-		else if(IsKeyPressed(KEY_TWO)){
+		if(IsKeyPressed(KEY_TWO)){
 			spawningCharge = 0;
 		}
-		else if(IsKeyPressed(KEY_THREE)){
+		if(IsKeyPressed(KEY_THREE)){
 			spawningCharge = -1;
 		}
 	}
 }
+
+
+
+
+
+int timer(double delay) {  //returns false when the time in seconds that was given as an argument reaches 0 
+	double timeSinceStart = GetTime();
+	double timeDelay = GetTime() + delay;
+	if(timeSinceStart >= timeDelay){
+		return 0;
+	}
+}
+
+
+
 
 int main(int argc, char** argv) {
 	(void)argc;
