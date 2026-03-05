@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <math.h>
 
 typedef struct {
 	Vector2 pos;
@@ -65,15 +66,14 @@ void circleSelect(){
 	
 }
 
-
-
-int timer(double delay) {  //returns 2 when the time in seconds that was given as an argument reaches 0 
-	double timeDelay = GetTime() + delay;
-	while(GetTime() <= timeDelay){
-		return 1;
+bool timer(float delay){
+	if(delay > 0){
+		delay -= GetFrameTime();
+		return false;
+	} else if (delay < 0) {
+		delay = 0;
+		return true;
 	}
-	return 2;
-
 }
 
 void mouseActions(){
@@ -83,10 +83,12 @@ void mouseActions(){
 	unsigned short state = 0;
 	if(IsKeyPressed(KEY_A)){
 		state = 1;
-		state = timer(10);
 	}
-	if(state == 1) {
-
+	while(state == 1) {
+		
+		if(IsTimerFinished(10.0f, GetTime())) {
+			state = 2;
+		}
 		if(IsKeyPressed(KEY_ONE)){
 			spawningCharge = 1;
 			TraceLog(LOG_INFO, "1");   
@@ -99,7 +101,8 @@ void mouseActions(){
 			spawningCharge = -1;
 			TraceLog(LOG_INFO, "3");   
 		}
-	} else if (state == 2) {
+	}  
+	if (state == 2) {
 		atomSpawn(GetMousePosition(), spawningCharge, 0);
 	}
 }
