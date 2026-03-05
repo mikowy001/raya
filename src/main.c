@@ -72,9 +72,9 @@ void circleSelect(){
 		
 		if(IsKeyPressed(KEY_S)){
 			for(int i = 0; i < (int)atomCount; i++){
+				atomsList[i].selected = false;
 				if(CheckCollisionPointCircle(atomsList[i].pos, circleCenter, circleSelectorSize)){
-					
-					TraceLog(LOG_INFO, "WYKRYTO"); // tutaj trzeba zrobic arrayke ktora bedzie trzymac zaznaczone atomy w sobie chyba
+					atomsList[i].selected = true;
 				}
 			}
 		}
@@ -238,11 +238,19 @@ int main(int argc, char** argv) {
 					color = (Color){255, 0, 0, 255};
 					break;
 			}
-        	DrawRectanglePro((Rectangle){atomsList[i].pos.x, atomsList[i].pos.y, atomsList[i].size, atomsList[i].size}, 
-					(Vector2){atomsList[i].size/2, atomsList[i].size / 2}, 
+			Rectangle rectangle = (Rectangle){atomsList[i].pos.x, atomsList[i].pos.y, atomsList[i].size, atomsList[i].size};
+
+			Vector2 origin = (Vector2){atomsList[i].size/2, atomsList[i].size / 2};
+
+        	DrawRectanglePro(
+					rectangle,
+					origin,
 					atomsList[i].rot, 
 					color);
-			
+			if(atomsList[i].selected == true) {
+				DrawRectangleLinesEx(rectangle, 2.0f, YELLOW);
+			}
+
  		}
 		
 		userActions();
