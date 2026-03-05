@@ -15,13 +15,17 @@ typedef struct {
 } atom;
 
 
+//GLOBAL SETTINGS !!!
+int mouseWheelSensivity = 10;
+//
+
+
 atom* atomsList = NULL;
 size_t atomCount = 0;
 
 bool isPaused = false;
+int circleSelectorSize;
 
-float timeUntilChoosingDecays = 20.0f; // time in seconds	
-float timerTime = 20.0f;
 
 void atomSpawn(Vector2 pos, int charge, int rotation) {
 	atomsList = realloc(atomsList, (atomCount + 1) * sizeof(atom));
@@ -56,16 +60,33 @@ void atomSpawn(Vector2 pos, int charge, int rotation) {
 }
 
 void circleSelect(){
-	int selectorSize = 16;
-	if(selectorSize >= 2 ){
-		selectorSize += GetMouseWheelMove();
-	} else {
-		selectorSize = 2;
-	}
-	if(!isPaused){
-		DrawCircleLinesV(GetMousePosition(), selectorSize, WHITE);
+		if(!isPaused){
+			if(circleSelectorSize >= 2 ){
+				circleSelectorSize += GetMouseWheelMove() * mouseWheelSensivity;
+			} else {
+			circleSelectorSize = 2;
+			}
+		Vector2 circleCenter = GetMousePosition();
+		DrawCircleLinesV(circleCenter, circleSelectorSize, WHITE);
 		//TraceLog(LOG_INFO, "mousewheel: %d", selectorSize);   debug for printing out the selection circle size
+		
+		if(IsKeyPressed(KEY_S)){
+			for(int i = 0; i < (int)atomCount; i++){
+				if(
+					atomsList[i].pos.x >= circleCenter.x - circleSelectorSize && 
+					atomsList[i].pos.x <= circleCenter.x + circleSelectorSize && 
+					atomsList[i].pos.y >= circleCenter.y - circleSelectorSize && 
+					atomsList[i].pos.y >= circleCenter.y + circleSelectorSize){
+					
+					TraceLog(LOG_INFO, ""WYKRYTO); // tutaj trzeba zrobic arrayke ktora bedzie trzymac zaznaczone atomy w sobie chyba
+				}
+			}
+		}
+		
 	}
+	
+	DrawText(TextFormat("Brush size: %d px", circleSelectorSize), 25, 75, 16, WHITE);
+	
 	
 }
 
@@ -79,54 +100,58 @@ void circleSelect(){
 //	}
 //}
 
-void mouseActions(){
 
+void atomSpawning() {
+	
 	// "A" key for spawning an atom
+	
+	static double selectionStartTime = 0.0f;  
+    static const float selectionDuration = 10.0f;  
+	
 	short spawningCharge = 1;
-	bool AwasPressed;
-	bool chosen;
+	static bool AwasPressed;
+	static bool chosen;
+
 	if(IsKeyPressed(KEY_A)){
 		AwasPressed = true;
-		TraceLog(LOG_INFO, "A WAS PRESSED!!!");
+		selectionStartTime = GetTime();
 	}
 	if(AwasPressed) {
 		
-		
-		timerTime -= GetFrameTime(); 
 
-		if(timerTime < 0) {
+		double elapsed = GetTime() - selectionStartTime;
+		if(elapsed >= selectionDuration) {
 			AwasPressed = false;
-			timerTime = 20.0f;
+			chosen = false;
 		}
 
 		if(IsKeyPressed(KEY_ONE)){
 			spawningCharge = 1;
-			TraceLog(LOG_INFO, "1");  
 			chosen = true;
-			AwasPressed = false;
 		}
 		if(IsKeyPressed(KEY_TWO)){
 			spawningCharge = 0;
-			TraceLog(LOG_INFO, "2");   
 			chosen = true;
-			AwasPressed = false;
 		}
 		if(IsKeyPressed(KEY_THREE)){
 			spawningCharge = -1;
-			TraceLog(LOG_INFO, "3");   
 			chosen = true;
-			AwasPressed = false;
 		}
 	}  
-	if (chosen) {
+	if (chosen == true) {
+		AwasPressed = false;
 		atomSpawn(GetMousePosition(), spawningCharge, 0);
 		chosen = false;
+		TraceLog(LOG_INFO, "t:%.1f    Spawned %d atoms, charge: %d", GetTime(), 1, spawningCharge);
 	}
 }
 
 
 
-
+void userActions(){
+	atomSpawning();
+	circleSelect();
+}
 
 
 
@@ -150,6 +175,8 @@ int main(int argc, char** argv) {
 	double startTime = GetTime();
 	double pausedTime = 0.0;
 	double totalPausedDuration = 0.0;
+
+	int circleSelectorSize = 16;
 	
 
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
@@ -191,7 +218,6 @@ int main(int argc, char** argv) {
 			if(IsKeyDown(KEY_Q)) { atomsList[0].rot = atomsList[0].rot - rotationSpeed; }
 			if(IsKeyDown(KEY_E)) { atomsList[0].rot = atomsList[0].rot + rotationSpeed; }
 
-			mouseActions();
 		}
 
 
@@ -204,13 +230,26 @@ int main(int argc, char** argv) {
 
 		
 		for(int i = 0; i < (int)atomCount; i++){
+			Color color = (Color){255, 255, 255, 255};
+			switch(atomsList[i].charge){
+				case -1: 
+					color = (Color){255, 255, 255, 255};
+					break;
+				case 0:
+					color = (Color){0, 255, 255, 255};
+					break;
+				case 1:
+					color = (Color){255, 0, 0, 255};
+					break;
+			}
         	DrawRectanglePro((Rectangle){atomsList[i].pos.x, atomsList[i].pos.y, atomsList[i].size, atomsList[i].size}, 
 					(Vector2){atomsList[i].size/2, atomsList[i].size / 2}, 
 					atomsList[i].rot, 
-					(Color){255, 0, 0, 255 });
+					color);
+			
  		}
 		
-		circleSelect();	
+		userActions();
 
 		DrawText(TextFormat("Simulation time %.1f", elapsedTime), 25, 25, 16, WHITE);
 		DrawText(TextFormat("dt: %.3f ms", GetFrameTime() * 1000), 25, 50, 16, WHITE);
