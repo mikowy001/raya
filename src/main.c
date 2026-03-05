@@ -72,11 +72,7 @@ void circleSelect(){
 		
 		if(IsKeyPressed(KEY_S)){
 			for(int i = 0; i < (int)atomCount; i++){
-				if(
-					atomsList[i].pos.x >= circleCenter.x - circleSelectorSize && 
-					atomsList[i].pos.x <= circleCenter.x + circleSelectorSize && 
-					atomsList[i].pos.y >= circleCenter.y - circleSelectorSize && 
-					atomsList[i].pos.y >= circleCenter.y + circleSelectorSize){
+				if(CheckCollisionPointCircle(atomsList[i].pos, circleCenter, circleSelectorSize)){
 					
 					TraceLog(LOG_INFO, "WYKRYTO"); // tutaj trzeba zrobic arrayke ktora bedzie trzymac zaznaczone atomy w sobie chyba
 				}
