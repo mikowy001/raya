@@ -40,11 +40,10 @@ bool isPaused = false;
 float scrollActionSpeed;
 
 Vector2 randomInCircle(Vector2 center, float radius){
-	float theta = (float)GetRandomValue(0, 360) * DEG2RAD;
-	TraceLog(LOG_INFO, "angle %f", theta);
-	float r = sqrtf(GetRandomValue(0, radius));
-	TraceLog(LOG_INFO, "radius %f", r);
-	return (Vector2){(float)center.x + r * cosf(theta), (float)center.y + r * sinf(theta)};
+	float theta = (float)GetRandomValue(0, 360);
+	float r = sqrtf(GetRandomValue(0, radius * radius));
+	Vector2 toReturn = (Vector2){(float)center.x + r * cosf(theta), (float)center.y + r * sinf(theta)};
+	return toReturn;
 }
 
 void atomSpawn(Vector2 pos, int charge, int rotation, int count, bool random) {
@@ -60,7 +59,7 @@ void atomSpawn(Vector2 pos, int charge, int rotation, int count, bool random) {
 	for(unsigned int i = 0; i < count; i++){
 		
 		if(random){
-			atomsList[atomCount + 1].pos = randomInCircle(GetMousePosition(), scrollActionSpeed);
+			atomsList[atomCount + i].pos = randomInCircle(GetMousePosition(), scrollActionSpeed);
 		} 
 		if(!random){
 			atomsList[atomCount + i].pos = pos;
