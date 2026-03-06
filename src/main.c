@@ -1,10 +1,10 @@
+#include <math.h>
 #include <raylib.h>
 
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-
 typedef struct {
 	Vector2 pos;
 	Vector2 force;
@@ -81,7 +81,7 @@ void circleSelect(){
 		if(!isPaused){
 			if(scrollActionSpeed >= 2 ){
 				scrollActionSpeed += GetMouseWheelMove() * mouseWheelSensivity;
-			} else {
+			} else 	{
 			scrollActionSpeed = 2;
 			}
 		Vector2 circleCenter = GetMousePosition();
@@ -123,15 +123,18 @@ void circleSelect(){
 
 multiSpawningInfo spawningUI(double elapsed, bool reset){
 	static char inputString[MAXINPUTCHARS + 1] = "\0";
+	static int currentDigitCount = 0;
 	if(reset){
-		inputString[MAXINPUTCHARS] = '\0';
+		for(int i = 0; i < MAXINPUTCHARS + 1; i++) {
+			inputString[i] = ' ';
+			currentDigitCount = 0;
+		}
 		TraceLog(LOG_INFO, "RESETED STRING");
 	}
 	bool typing = true;
 	Rectangle textBox = (Rectangle){5, 5, GetScreenWidth() - 10, 25};
 	static int frameCounter = 0;
 	
-	static int currentDigitCount = 0;
 	
 	int key = GetCharPressed();
 	while (key > 0) {
@@ -144,11 +147,11 @@ multiSpawningInfo spawningUI(double elapsed, bool reset){
 		key = GetCharPressed(); 
 	}
 	
-        if (IsKeyPressed(KEY_BACKSPACE)){
-			currentDigitCount--;
-			if (currentDigitCount < 0) currentDigitCount = 0;
-        	inputString[currentDigitCount] = '\0';
-		}
+    if (IsKeyPressed(KEY_BACKSPACE)){
+		currentDigitCount--;
+		if (currentDigitCount < 0) currentDigitCount = 0;
+        inputString[currentDigitCount] = '\0';
+	}
 	
 	DrawText(inputString, 10, 14, 16 ,WHITE);
 	DrawRectangleRoundedLines(textBox, 0.4f, 1, WHITE);
@@ -157,6 +160,33 @@ multiSpawningInfo spawningUI(double elapsed, bool reset){
 	multiSpawningInfo returnThing = (multiSpawningInfo){countToReturn, 0};
 	return returnThing;
 }
+
+short selectingChargeUI(double elapsed, bool reset) {
+		short selectedCharge = 1;
+		bool chosen = false;
+		if(IsKeyPressed(KEY_ONE)){
+			selectedCharge = 1;
+			chosen = true;
+		}
+		if(IsKeyPressed(KEY_TWO)){
+			selectedCharge = 0;
+			chosen = true;
+		}
+		if(IsKeyPressed(KEY_THREE)){
+			selectedCharge = -1;
+			chosen = true;
+		}
+		Rectangle textBox = (Rectangle){5, 5, GetScreenWidth() - 10, 25};
+		DrawRectangleRoundedLines(textBox, 0.4f, 1, WHITE);
+
+		if(chosen){
+			return selectedCharge;
+		}
+		else {
+			return -10;
+		}
+}
+
 
 void atomSpawning() {
 	
@@ -186,58 +216,62 @@ void atomSpawning() {
 			selectingCharge = true;
 		}
 	}
-
+	unsigned int spawningCount;
 	if(enteringNumbers){
 		double elapsed = GetTime() - selectionStartTime;
 		SetMouseCursor(MOUSE_CURSOR_IBEAM);
 		multiSpawningInfo spawningInfo = spawningUI(elapsed, false);
-		unsigned int spawningCount = spawningInfo.count; // how many atoms to spawn
+		spawningCount = spawningInfo.count; // how many atoms to spawn
 		
 		if(elapsed >= selectionDuration) { // if timer ends
 			enteringNumbers = false;
 			shiftWasPressed = false;
 			selectingCharge = true;
 			SetMouseCursor(MOUSE_CURSOR_DEFAULT);
-			//spawningUI(elapsed, true);
+			spawningUI(elapsed, true);
 			spawningCount = 1;
-		} else if(KEY_ENTER) { // if user selects number to spawn
+		} 
+		if(IsKeyPressed(KEY_ENTER)) { // if user selects number to spawn
 			enteringNumbers = false;
 			shiftWasPressed = false;
 			selectingCharge = true;
 			SetMouseCursor(MOUSE_CURSOR_DEFAULT);
-			//spawningUI(elapsed, true);
+			spawningUI(elapsed, true);
 			TraceLog(LOG_INFO, "enter: %d", spawningCount);
+			if(spawningCount == 0){
+				spawningCount = 1;
+			}
 		}
 
 }
+	short chargeToSpawn = -10;
 	if(selectingCharge) {
 		
 		double elapsed = GetTime() - selectionStartTime;
+		chargeToSpawn = selectingChargeUI(elapsed, false);
 		if(elapsed >= selectionDuration) {
 			selectingCharge = false;
+			chargeToSpawn = 0;
 			chosen = false;
 		}
-
-
-
-		if(IsKeyPressed(KEY_ONE)){
-			spawningCharge = 1;
+		if(chargeToSpawn > -10){
 			chosen = true;
 		}
-		if(IsKeyPressed(KEY_TWO)){
-			spawningCharge = 0;
-			chosen = true;
-		}
-		if(IsKeyPressed(KEY_THREE)){
-			spawningCharge = -1;
-			chosen = true;
-		}
+
 	}  
 	if (chosen == true) {
 		selectingCharge = false;
-		atomSpawn(GetMousePosition(), spawningCharge, 0);
+		
+		for(int i = 0; i < spawningCount; i++){
+			Vector2 place = GetMousePosition();
+			int angle = (rand() / RAND_MAX) * 360;
+			int offset = sqrtf((rand() / RAND_MAX) * (float)scrollActionSpeed);
+			
+			place = (Vector2){GetMousePosition().x + offset * cos(angle), GetMousePosition().y + offset * sin(angle)};
+			atomSpawn(place, chargeToSpawn, 0);
+		}
 		chosen = false;
-		TraceLog(LOG_INFO, "t:%.1f    Spawned %d atoms, charge: %d", GetTime(), 1, spawningCharge);
+		TraceLog(LOG_INFO, "t:%.1f    Spawned %d atoms, charge: %d", GetTime(), spawningCount, spawningCharge);
 	}
 }
 
