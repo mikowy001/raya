@@ -14,20 +14,26 @@ typedef struct {
 	bool selected;
 } atom;
 
+typedef struct {
+	int count;
+	int charge;
+} multiSpawningInfo;
 
 //GLOBAL SETTINGS !!!
 int mouseWheelSensivity = 10;
 //arrow moving
 float movementSpeed = 1.5;
 float rotationSpeed = 2.5;
-//
+//spawningUI SETTINGS
+#define MAX_INPUT_CHARS = 50;
 
 
 atom* atomsList = NULL;
 size_t atomCount = 0;
 
 bool isPaused = false;
-int circleSelectorSize;
+float scrollActionSpeed;
+
 
 
 void atomSpawn(Vector2 pos, int charge, int rotation) {
@@ -60,39 +66,63 @@ void atomSpawn(Vector2 pos, int charge, int rotation) {
 	atomsList[atomCount].force = (Vector2){0, 0};
 
 	atomCount++;
+
+	//TraceLog(LOG_INFO, "debug: %d", scrollActionSpeed);  debug
 }
+
+
 
 void circleSelect(){
 		if(!isPaused){
-			if(circleSelectorSize >= 2 ){
-				circleSelectorSize += GetMouseWheelMove() * mouseWheelSensivity;
+			if(scrollActionSpeed >= 2 ){
+				scrollActionSpeed += GetMouseWheelMove() * mouseWheelSensivity;
 			} else {
-			circleSelectorSize = 2;
+			scrollActionSpeed = 2;
 			}
 		Vector2 circleCenter = GetMousePosition();
-		DrawCircleLinesV(circleCenter, circleSelectorSize, WHITE);
+		DrawCircleLinesV(circleCenter, scrollActionSpeed, WHITE);
 		//TraceLog(LOG_INFO, "mousewheel: %d", selectorSize);   debug for printing out the selection circle size
 		
 		int selected = 0;
-		if(IsKeyPressed(KEY_S)){
-			for(int i = 0; i < (int)atomCount; i++){
-				atomsList[i].selected = false;
-				if(CheckCollisionPointCircle(atomsList[i].pos, circleCenter, circleSelectorSize)){
-					atomsList[i].selected = true;
-					selected++;
+			if(IsKeyDown(KEY_LEFT_SHIFT)){
+
+				if(IsKeyPressed(KEY_S)){
+					for(int i = 0; i < (int)atomCount; i++){
+						if(CheckCollisionPointCircle(atomsList[i].pos, circleCenter, scrollActionSpeed)){
+							atomsList[i].selected = true;
+							selected++;
+						}
+					}
+				TraceLog(LOG_INFO, "t:%.1f    Added to selection %d atoms", GetTime(), selected);
 				}
-			}
-			TraceLog(LOG_INFO, "t:%.1f    Selected %d atoms", GetTime(), selected);
-		}
 		
-	}
-	
-	DrawText(TextFormat("Brush size: %d px", circleSelectorSize), 25, 75, 16, WHITE);
-	
+			}
+			if(!IsKeyDown(KEY_LEFT_SHIFT)){
+
+				if(IsKeyPressed(KEY_S)){
+					for(int i = 0; i < (int)atomCount; i++){
+						atomsList[i].selected = false;
+						if(CheckCollisionPointCircle(atomsList[i].pos, circleCenter, scrollActionSpeed)){
+							atomsList[i].selected = true;
+							selected++;
+						}
+					}
+				TraceLog(LOG_INFO, "t:%.1f    Selected %d atoms", GetTime(), selected);
+				}
+		
+			}
+		}
+	DrawText(TextFormat("Brush size: %.0f px", scrollActionSpeed), 25, 75, 16, WHITE);
 	
 }
 
+multiSpawningInfo spawningUI(){
+	bool typing = true;
+	Rectangle textBox = (Rectangle){25, 50, GetScreenWidth(), 75};
+	static int frameCounter = 0;
 
+	DrawRectangleRoundedLines(textBox, 10.0f, 2, WHITE);
+}
 
 void atomSpawning() {
 	
@@ -104,6 +134,9 @@ void atomSpawning() {
 	short spawningCharge = 1;
 	static bool AwasPressed;
 	static bool chosen;
+	bool shiftWasPressed;
+	
+	shiftWasPressed = IsKeyDown(KEY_LEFT_SHIFT);
 
 	if(IsKeyPressed(KEY_A)){
 		AwasPressed = true;
@@ -111,6 +144,12 @@ void atomSpawning() {
 	}
 	if(AwasPressed) {
 		
+		if(shiftWasPressed) {
+			TraceLog(LOG_INFO, "a + shift was pressed");
+			shiftWasPressed = false;
+			spawningUI();
+			//if(){}
+		}
 
 		double elapsed = GetTime() - selectionStartTime;
 		if(elapsed >= selectionDuration) {
@@ -141,7 +180,8 @@ void atomSpawning() {
 
 void arrowMoving(){
 		if(!isPaused) {
-
+			
+			movementSpeed = scrollActionSpeed / 4;
 			if(IsKeyDown(KEY_UP)) {
 				for(int i = 0; i < (int)atomCount; i++){
 						if(atomsList[i].selected == true) {
@@ -207,12 +247,15 @@ int main(int argc, char** argv) {
 	atomsList[0].pos = (Vector2){100, 100};
 	atomsList[0].size = 25;
 
+	char inputString[MAX_INPUT_CHARS + 1] = "\0";
+	int currentLetterCount = 0;
+	Rectangle textBox;
 
 	double startTime = GetTime();
 	double pausedTime = 0.0;
 	double totalPausedDuration = 0.0;
 
-	int circleSelectorSize = 16;
+	scrollActionSpeed = 16;
 	
 
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
