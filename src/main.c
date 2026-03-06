@@ -27,7 +27,7 @@ float movementSpeed = 1.5;
 float rotationSpeed = 2.5;
 //spawningUI SETTINGS
 #define MAXINPUTCHARS  50
-const float selectionDuration = 4.0f;
+const float selectionDuration = 10.0f;
 
 //info texts SETTINGS
 int paddingTop = 35;
@@ -174,7 +174,7 @@ multiSpawningInfo spawningUI(double elapsed, bool reset){
 	
 	DrawText(inputString, 10, 14, 16 ,WHITE);
 	DrawRectangleRoundedLines(textBox, 0.4f, 1, WHITE);
-	DrawLineEx((Vector2){10, 30}, (Vector2){(GetScreenWidth() - 10) - (elapsed/4 * (GetScreenWidth() - 20)), 30}, 2.0f, RED);
+	DrawLineEx((Vector2){10, 30}, (Vector2){(GetScreenWidth() - 10) - (elapsed/selectionDuration * (GetScreenWidth() - 20)), 30}, 2.0f, RED);
 	int countToReturn = atoi(inputString);
 	multiSpawningInfo returnThing = (multiSpawningInfo){countToReturn, 0};
 	return returnThing;
@@ -197,6 +197,7 @@ short selectingChargeUI(double elapsed, bool reset) {
 		}
 		Rectangle textBox = (Rectangle){5, 5, GetScreenWidth() - 10, 25};
 		DrawRectangleRoundedLines(textBox, 0.4f, 1, WHITE);
+		DrawLineEx((Vector2){10, 30}, (Vector2){(GetScreenWidth() - 10) - (elapsed/selectionDuration * (GetScreenWidth() - 20)), 30}, 2.0f, RED);
 
 		if(chosen){
 			return selectedCharge;
@@ -248,7 +249,10 @@ void atomSpawning() {
 			selectingCharge = true;
 			SetMouseCursor(MOUSE_CURSOR_DEFAULT);
 			spawningUI(elapsed, true);
-			spawningCount = 1;
+			if(spawningCount == 0){
+				spawningCount = 1;
+			}
+			selectionStartTime = GetTime();
 		} 
 		if(IsKeyPressed(KEY_ENTER)) { // if user selects number to spawn
 			enteringNumbers = false;
@@ -257,6 +261,7 @@ void atomSpawning() {
 			SetMouseCursor(MOUSE_CURSOR_DEFAULT);
 			spawningUI(elapsed, true);
 			TraceLog(LOG_INFO, "enter: %d", spawningCount);
+			selectionStartTime = GetTime();
 			if(spawningCount == 0){
 				spawningCount = 1;
 			}
