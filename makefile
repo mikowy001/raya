@@ -4,7 +4,7 @@ OBJ_DIR = obj
 
 CC = gcc
 CFLAGS = -Wall -Wextra -I./src
-LIBS = -lraylib 
+LIBS = -lraylib -lm
 
 SRCS := $(shell find src -name "*.c")
 

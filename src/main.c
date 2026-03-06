@@ -39,40 +39,60 @@ size_t atomCount = 0;
 bool isPaused = false;
 float scrollActionSpeed;
 
+Vector2 randomInCircle(Vector2 center, float radius){
+	float theta = (float)GetRandomValue(0, 360) * DEG2RAD;
+	TraceLog(LOG_INFO, "angle %f", theta);
+	float r = sqrtf(GetRandomValue(0, radius));
+	TraceLog(LOG_INFO, "radius %f", r);
+	return (Vector2){(float)center.x + r * cosf(theta), (float)center.y + r * sinf(theta)};
+}
 
-
-void atomSpawn(Vector2 pos, int charge, int rotation) {
-	atomsList = realloc(atomsList, (atomCount + 1) * sizeof(atom));
+void atomSpawn(Vector2 pos, int charge, int rotation, int count, bool random) {
+	
+	atomsList = realloc(atomsList, (atomCount + count) * sizeof(atom));
+	
 	if(!atomsList) {
 		assert("ERROR: MALLOC EXPLODED: check atom array setup in atomSpawn");
 		exit(EXIT_FAILURE);
 	}
-	atomsList[atomCount].pos = pos;
-	atomsList[atomCount].charge = charge;
-	atomsList[atomCount].rot = rotation;
+	
 
-	switch(charge){
-		case 1:
-			atomsList[atomCount].size = 25;
-			break;
-		case 0:
-			atomsList[atomCount].size = 25;
-			break;
-		case -1:
-			atomsList[atomCount].size = 10;
-			break;
-		default: {
-			assert("ERROR: INVALID CHARGE AT SPAWNING ATOM");
-			exit(EXIT_FAILURE);
+	for(unsigned int i = 0; i < count; i++){
+		
+		if(random){
+			atomsList[atomCount + 1].pos = randomInCircle(GetMousePosition(), scrollActionSpeed);
+		} 
+		if(!random){
+			atomsList[atomCount + i].pos = pos;
 		}
+
+		atomsList[atomCount + i].charge = charge;
+		atomsList[atomCount + i].rot = rotation;
+	
+		switch(charge){
+			case 1:
+				atomsList[atomCount + i].size = 25;
+				break;
+			case 0:
+				atomsList[atomCount + i].size = 25;
+				break;
+			case -1:
+				atomsList[atomCount + i].size = 10;
+				break;
+			default: {
+				assert("ERROR: INVALID CHARGE AT SPAWNING ATOM");
+				exit(EXIT_FAILURE);
+			}
+		}
+		atomsList[atomCount + i].selected = false;
+		atomsList[atomCount + i].force = (Vector2){0, 0};
+
 	}
 
-	atomsList[atomCount].selected = false;
-	atomsList[atomCount].force = (Vector2){0, 0};
-
-	atomCount++;
-
+	atomCount = atomCount + count;
 	//TraceLog(LOG_INFO, "debug: %d", scrollActionSpeed);  debug
+	TraceLog(LOG_INFO, "DZIALA TUTAJ");
+	
 }
 
 
@@ -216,7 +236,7 @@ void atomSpawning() {
 			selectingCharge = true;
 		}
 	}
-	unsigned int spawningCount;
+	static unsigned int spawningCount;
 	if(enteringNumbers){
 		double elapsed = GetTime() - selectionStartTime;
 		SetMouseCursor(MOUSE_CURSOR_IBEAM);
@@ -262,16 +282,12 @@ void atomSpawning() {
 	if (chosen == true) {
 		selectingCharge = false;
 		
-		for(int i = 0; i < spawningCount; i++){
-			Vector2 place = GetMousePosition();
-			int angle = (rand() / RAND_MAX) * 360;
-			int offset = sqrtf((rand() / RAND_MAX) * (float)scrollActionSpeed);
-			
-			place = (Vector2){GetMousePosition().x + offset * cos(angle), GetMousePosition().y + offset * sin(angle)};
-			atomSpawn(place, chargeToSpawn, 0);
-		}
+		atomSpawn(randomInCircle(GetMousePosition(), scrollActionSpeed), chargeToSpawn, 0, spawningCount, true);
+		
 		chosen = false;
+		
 		TraceLog(LOG_INFO, "t:%.1f    Spawned %d atoms, charge: %d", GetTime(), spawningCount, spawningCharge);
+		spawningCount = 0;
 	}
 }
 
@@ -339,7 +355,7 @@ int main(int argc, char** argv) {
     const int screenHeight = 800;
 
 	
-	atomSpawn((Vector2){250, 250}, 1, 0);
+	atomSpawn((Vector2){250, 250}, 1, 0, 1, false);
 	
 	atomsList[0].pos = (Vector2){100, 100};
 	atomsList[0].size = 25;
