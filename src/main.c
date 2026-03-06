@@ -25,7 +25,11 @@ int mouseWheelSensivity = 10;
 float movementSpeed = 1.5;
 float rotationSpeed = 2.5;
 //spawningUI SETTINGS
-#define MAX_INPUT_CHARS = 50;
+#define MAXINPUTCHARS  50
+const float selectionDuration = 4.0f;
+
+//info texts SETTINGS
+int paddingTop = 35;
 
 
 atom* atomsList = NULL;
@@ -112,16 +116,18 @@ void circleSelect(){
 		
 			}
 		}
-	DrawText(TextFormat("Brush size: %.0f px", scrollActionSpeed), 25, 75, 16, WHITE);
+	DrawText(TextFormat("Brush size: %.0f px", scrollActionSpeed), 25, (paddingTop - 8) * 3, 16, WHITE);
 	
 }
 
-multiSpawningInfo spawningUI(){
+multiSpawningInfo spawningUI(double elapsed){
 	bool typing = true;
-	Rectangle textBox = (Rectangle){25, 50, GetScreenWidth(), 75};
+	Rectangle textBox = (Rectangle){5, 5, GetScreenWidth() - 10, 25};
 	static int frameCounter = 0;
+	char inputString[MAXINPUTCHARS + 1] = "\0";
+	int currentLetterCount = 0;
 
-	DrawRectangleRoundedLines(textBox, 10.0f, 2, WHITE);
+	DrawRectangleRoundedLines(textBox, 0.4f, 1, WHITE);
 }
 
 void atomSpawning() {
@@ -129,33 +135,50 @@ void atomSpawning() {
 	// "A" key for spawning an atom
 	
 	static double selectionStartTime = 0.0f;  
-    static const float selectionDuration = 10.0f;  
+      
 	
 	short spawningCharge = 1;
-	static bool AwasPressed;
 	static bool chosen;
-	bool shiftWasPressed;
+	static bool shiftWasPressed;
+
+	static bool enteringNumbers;
+	static bool selectingCharge;
 	
-	shiftWasPressed = IsKeyDown(KEY_LEFT_SHIFT);
+	if(IsKeyDown(KEY_LEFT_SHIFT)){
+		shiftWasPressed = true;
+	}
 
 	if(IsKeyPressed(KEY_A)){
-		AwasPressed = true;
 		selectionStartTime = GetTime();
+		if(shiftWasPressed){
+			enteringNumbers = true;
+			selectingCharge = false;
+		} else {
+			enteringNumbers = false;
+			selectingCharge = true;
+		}
 	}
-	if(AwasPressed) {
+
+	if(enteringNumbers){
+		double elapsed = GetTime() - selectionStartTime;
+		multiSpawningInfo spawningInfo = spawningUI(elapsed);
+		int spawningCount = spawningInfo.count;
 		
-		if(shiftWasPressed) {
-			TraceLog(LOG_INFO, "a + shift was pressed");
-			shiftWasPressed = false;
-			spawningUI();
-			//if(){}
+		if(elapsed >= selectionDuration) {
+			enteringNumbers = false;
+			selectingCharge = true;
+		} else {
 		}
 
+}
+	if(selectingCharge) {
+		
 		double elapsed = GetTime() - selectionStartTime;
 		if(elapsed >= selectionDuration) {
-			AwasPressed = false;
-			chosen = false;
+			selectingCharge = false;
 		}
+
+
 
 		if(IsKeyPressed(KEY_ONE)){
 			spawningCharge = 1;
@@ -171,7 +194,7 @@ void atomSpawning() {
 		}
 	}  
 	if (chosen == true) {
-		AwasPressed = false;
+		selectingCharge = false;
 		atomSpawn(GetMousePosition(), spawningCharge, 0);
 		chosen = false;
 		TraceLog(LOG_INFO, "t:%.1f    Spawned %d atoms, charge: %d", GetTime(), 1, spawningCharge);
@@ -247,9 +270,6 @@ int main(int argc, char** argv) {
 	atomsList[0].pos = (Vector2){100, 100};
 	atomsList[0].size = 25;
 
-	char inputString[MAX_INPUT_CHARS + 1] = "\0";
-	int currentLetterCount = 0;
-	Rectangle textBox;
 
 	double startTime = GetTime();
 	double pausedTime = 0.0;
@@ -331,8 +351,8 @@ int main(int argc, char** argv) {
 		
 		userActions();
 
-		DrawText(TextFormat("Simulation time %.1f", elapsedTime), 25, 25, 16, WHITE);
-		DrawText(TextFormat("dt: %.3f ms", GetFrameTime() * 1000), 25, 50, 16, WHITE);
+		DrawText(TextFormat("Simulation time %.1f", elapsedTime), 25, paddingTop, 16, WHITE);
+		DrawText(TextFormat("dt: %.3f ms", GetFrameTime() * 1000), 25, (paddingTop - 5) * 2, 16, WHITE);
 		
 		if(!isPaused) {
 
