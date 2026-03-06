@@ -17,6 +17,7 @@ typedef struct {
 typedef struct {
 	int count;
 	int charge;
+	bool typing;
 } multiSpawningInfo;
 
 //GLOBAL SETTINGS !!!
@@ -125,9 +126,28 @@ multiSpawningInfo spawningUI(double elapsed){
 	Rectangle textBox = (Rectangle){5, 5, GetScreenWidth() - 10, 25};
 	static int frameCounter = 0;
 	char inputString[MAXINPUTCHARS + 1] = "\0";
-	int currentLetterCount = 0;
+	int currentDigitCount = 0;
+	
+	int key = GetCharPressed();
+	while (key > 0) {
+		if ((key >= 48) && (key <= 57) && (currentDigitCount < MAXINPUTCHARS)){
+        	inputString[currentDigitCount] = (char)key;
+            inputString[currentDigitCount+1] = '\0';                     
+			currentDigitCount++;
+        }
+
+		key = GetCharPressed(); 
+	}
+	
+        if (IsKeyPressed(KEY_BACKSPACE)){
+			currentDigitCount--;
+			if (currentDigitCount < 0) currentDigitCount = 0;
+        	inputString[currentDigitCount] = '\0';
+		}
+
 
 	DrawRectangleRoundedLines(textBox, 0.4f, 1, WHITE);
+	DrawLineEx((Vector2){10, 30}, (Vector2){(GetScreenWidth() - 10) - (elapsed/4 * (GetScreenWidth() - 20)), 30}, 2.0f, RED);
 }
 
 void atomSpawning() {
@@ -161,13 +181,21 @@ void atomSpawning() {
 
 	if(enteringNumbers){
 		double elapsed = GetTime() - selectionStartTime;
+		SetMouseCursor(MOUSE_CURSOR_IBEAM);
 		multiSpawningInfo spawningInfo = spawningUI(elapsed);
-		int spawningCount = spawningInfo.count;
+		unsigned int spawningCount = spawningInfo.count; // how many atoms to spawn
 		
-		if(elapsed >= selectionDuration) {
+		if(elapsed >= selectionDuration) { // if timer ends
 			enteringNumbers = false;
+			shiftWasPressed = false;
 			selectingCharge = true;
-		} else {
+			SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+			spawningCount = 1;
+		} else if(spawningCount != 0) { // if user selects number to spawn
+			enteringNumbers = false;
+			shiftWasPressed = false;
+			selectingCharge = true;
+			SetMouseCursor(MOUSE_CURSOR_DEFAULT);
 		}
 
 }
@@ -176,6 +204,7 @@ void atomSpawning() {
 		double elapsed = GetTime() - selectionStartTime;
 		if(elapsed >= selectionDuration) {
 			selectingCharge = false;
+			chosen = false;
 		}
 
 
