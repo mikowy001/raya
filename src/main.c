@@ -121,11 +121,16 @@ void circleSelect(){
 	 
 }
 
-multiSpawningInfo spawningUI(double elapsed){
+multiSpawningInfo spawningUI(double elapsed, bool reset){
+	static char inputString[MAXINPUTCHARS + 1] = "\0";
+	if(reset){
+		inputString[MAXINPUTCHARS] = '\0';
+		TraceLog(LOG_INFO, "RESETED STRING");
+	}
 	bool typing = true;
 	Rectangle textBox = (Rectangle){5, 5, GetScreenWidth() - 10, 25};
 	static int frameCounter = 0;
-	static char inputString[MAXINPUTCHARS + 1] = "\0";
+	
 	static int currentDigitCount = 0;
 	
 	int key = GetCharPressed();
@@ -148,9 +153,9 @@ multiSpawningInfo spawningUI(double elapsed){
 	DrawText(inputString, 10, 14, 16 ,WHITE);
 	DrawRectangleRoundedLines(textBox, 0.4f, 1, WHITE);
 	DrawLineEx((Vector2){10, 30}, (Vector2){(GetScreenWidth() - 10) - (elapsed/4 * (GetScreenWidth() - 20)), 30}, 2.0f, RED);
-	int countToReturn = 
-	multiSpawningInfo returnThing = {(int)inputString, 0}
-	return multiSpawningInf;
+	int countToReturn = atoi(inputString);
+	multiSpawningInfo returnThing = (multiSpawningInfo){countToReturn, 0};
+	return returnThing;
 }
 
 void atomSpawning() {
@@ -185,7 +190,7 @@ void atomSpawning() {
 	if(enteringNumbers){
 		double elapsed = GetTime() - selectionStartTime;
 		SetMouseCursor(MOUSE_CURSOR_IBEAM);
-		multiSpawningInfo spawningInfo = spawningUI(elapsed);
+		multiSpawningInfo spawningInfo = spawningUI(elapsed, false);
 		unsigned int spawningCount = spawningInfo.count; // how many atoms to spawn
 		
 		if(elapsed >= selectionDuration) { // if timer ends
@@ -193,12 +198,15 @@ void atomSpawning() {
 			shiftWasPressed = false;
 			selectingCharge = true;
 			SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+			//spawningUI(elapsed, true);
 			spawningCount = 1;
-		} else if(spawningCount != 0) { // if user selects number to spawn
+		} else if(KEY_ENTER) { // if user selects number to spawn
 			enteringNumbers = false;
 			shiftWasPressed = false;
 			selectingCharge = true;
 			SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+			//spawningUI(elapsed, true);
+			TraceLog(LOG_INFO, "enter: %d", spawningCount);
 		}
 
 }
