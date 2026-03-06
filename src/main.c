@@ -118,21 +118,21 @@ void circleSelect(){
 			}
 		}
 	DrawText(TextFormat("Brush size: %.0f px", scrollActionSpeed), 25, (paddingTop - 8) * 3, 16, WHITE);
-	
+	 
 }
 
 multiSpawningInfo spawningUI(double elapsed){
 	bool typing = true;
 	Rectangle textBox = (Rectangle){5, 5, GetScreenWidth() - 10, 25};
 	static int frameCounter = 0;
-	char inputString[MAXINPUTCHARS + 1] = "\0";
-	int currentDigitCount = 0;
+	static char inputString[MAXINPUTCHARS + 1] = "\0";
+	static int currentDigitCount = 0;
 	
 	int key = GetCharPressed();
 	while (key > 0) {
 		if ((key >= 48) && (key <= 57) && (currentDigitCount < MAXINPUTCHARS)){
         	inputString[currentDigitCount] = (char)key;
-            inputString[currentDigitCount+1] = '\0';                     
+            inputString[currentDigitCount + 1] = '\0';                     
 			currentDigitCount++;
         }
 
@@ -144,10 +144,13 @@ multiSpawningInfo spawningUI(double elapsed){
 			if (currentDigitCount < 0) currentDigitCount = 0;
         	inputString[currentDigitCount] = '\0';
 		}
-
-
+	
+	DrawText(inputString, 10, 14, 16 ,WHITE);
 	DrawRectangleRoundedLines(textBox, 0.4f, 1, WHITE);
 	DrawLineEx((Vector2){10, 30}, (Vector2){(GetScreenWidth() - 10) - (elapsed/4 * (GetScreenWidth() - 20)), 30}, 2.0f, RED);
+	int countToReturn = 
+	multiSpawningInfo returnThing = {(int)inputString, 0}
+	return multiSpawningInf;
 }
 
 void atomSpawning() {
