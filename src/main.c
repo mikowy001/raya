@@ -28,6 +28,8 @@ float rotationSpeed = 2.5;
 //spawningUI SETTINGS
 #define MAXINPUTCHARS  50
 const float selectionDuration = 10.0f;
+//rendering SETTINGS
+
 
 //info texts SETTINGS
 int paddingTop = 35;
@@ -339,13 +341,30 @@ void arrowMoving(){
 
 		}
 }
+void debugActions(){
+	if(IsKeyDown(KEY_F1)){
+		for(int i = 0; i < atomCount; i++){
+			DrawPixel(atomsList[i].pos.x, atomsList[i].pos.y, GREEN);  //press F1 to see the atoms center
+		}
+	}
+}
+
+void deleteSelectedAtoms(){
+	if(IsKeyPressed(KEY_D)){
+		for(int i = 0; i < atomCount; i++){
+			if(atomsList[i].selected == true){
+				//I THINK I NEED TO WRITE A FUNCTION FOR DELETING CERTIAN ATOMS.  MAYBE SQYD WILL DO IT? 
+			}
+		}
+	}
+}
 
 void userActions(){
 
 	atomSpawning();
 	circleSelect();
 	arrowMoving();
-
+	debugActions();
 }
 
 
@@ -375,6 +394,11 @@ int main(int argc, char** argv) {
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(screenWidth, screenHeight, "raya sim");
 	
+
+	Texture2D textureProton = LoadTexture("assets/proton.png");
+	Texture2D textureNeutron = LoadTexture("assets/neutron.png");
+	Texture2D textureElectron = LoadTexture("assets/electron.png");
+
 	SetTraceLogLevel(LOG_INFO);  // some thhing for logs
 
     SetTargetFPS(60);
@@ -409,32 +433,25 @@ int main(int argc, char** argv) {
 
         ClearBackground(BLACK);
 
+		userActions();
 
-
-		
+		Texture textureToRender;
 		for(int i = 0; i < (int)atomCount; i++){
-			Color color = (Color){255, 255, 255, 255};
-			switch(atomsList[i].charge){
-				case -1: 
-					color = (Color){255, 255, 255, 255};
+			switch (atomsList[i].charge){
+				case -1:
+					textureToRender = textureElectron;
 					break;
 				case 0:
-					color = (Color){0, 255, 255, 255};
+					textureToRender = textureNeutron;
 					break;
 				case 1:
-					color = (Color){255, 0, 0, 255};
+					textureToRender = textureProton;
+					break;
+				defalut:
+					TraceLog(LOG_INFO, "ERROR: while selecting texture for particle based on charge; invalid charge");
 					break;
 			}
-			Rectangle rectangle = (Rectangle){atomsList[i].pos.x, atomsList[i].pos.y, atomsList[i].size, atomsList[i].size};
-
-			Vector2 origin = (Vector2){atomsList[i].size/2, atomsList[i].size / 2};
-
-        	DrawRectanglePro(
-					rectangle,
-					origin,
-					atomsList[i].rot, 
-					color);
-
+			DrawTexture(textureToRender, atomsList[i].pos.x - atomsList[i].size/2, atomsList[i].pos.y - atomsList[i].size/2, WHITE);
 			if(atomsList[i].selected == true) {
 				DrawRectangleLinesEx((Rectangle){atomsList[i].pos.x - atomsList[i].size/2,
 										atomsList[i].pos.y - atomsList[i].size/2,
@@ -443,7 +460,7 @@ int main(int argc, char** argv) {
 
  		}
 		
-		userActions();
+	
 
 		DrawText(TextFormat("Simulation time %.1f", elapsedTime), 25, paddingTop, 16, WHITE);
 		DrawText(TextFormat("dt: %.3f ms", GetFrameTime() * 1000), 25, (paddingTop - 5) * 2, 16, WHITE);
@@ -459,7 +476,10 @@ int main(int argc, char** argv) {
 
 
     CloseWindow();        
-
+	
+	UnloadTexture(textureProton);
+	UnloadTexture(textureElectron);
+	UnloadTexture(textureProton);
 	free(atomsList);
 
     return 0;
