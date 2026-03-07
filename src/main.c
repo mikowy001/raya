@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <raymath.h>
 typedef struct {
 	Vector2 pos;
 	Vector2 force;
@@ -40,6 +41,7 @@ size_t atomCount = 0;
 
 bool isPaused = false;
 float scrollActionSpeed;
+Camera2D camera = { 0 };
 
 Vector2 randomInCircle(Vector2 center, float radius){
 	float theta = (float)GetRandomValue(0, 360);
@@ -106,15 +108,15 @@ void circleSelect(){
 			scrollActionSpeed = 2;
 			}
 		Vector2 circleCenter = GetMousePosition();
-		DrawCircleLinesV(circleCenter, scrollActionSpeed, WHITE);
+		
 		//TraceLog(LOG_INFO, "mousewheel: %d", selectorSize);   debug for printing out the selection circle size
 		
 		int selected = 0;
 			if(IsKeyDown(KEY_LEFT_SHIFT)){
-
+				TraceLog(LOG_INFO, "%.1f, %.1f vecttisr mouse", GetMousePosition().x, GetMousePosition().y);
 				if(IsKeyPressed(KEY_S)){
 					for(int i = 0; i < (int)atomCount; i++){
-						if(CheckCollisionPointCircle(atomsList[i].pos, circleCenter, scrollActionSpeed)){
+						if(CheckCollisionPointCircle(atomsList[i].pos, circleCenter , scrollActionSpeed)){
 							atomsList[i].selected = true;
 							selected++;
 						}
@@ -128,7 +130,9 @@ void circleSelect(){
 				if(IsKeyPressed(KEY_S)){
 					for(int i = 0; i < (int)atomCount; i++){
 						atomsList[i].selected = false;
-						if(CheckCollisionPointCircle(atomsList[i].pos, circleCenter, scrollActionSpeed)){
+						if(CheckCollisionPointCircle(atomsList[i].pos, 
+									(Vector2){circleCenter.x * camera.zoom, circleCenter.y * camera.zoom},
+									scrollActionSpeed)){
 							atomsList[i].selected = true;
 							selected++;
 						}
@@ -138,7 +142,7 @@ void circleSelect(){
 		
 			}
 		}
-	DrawText(TextFormat("Brush size: %.0f px", scrollActionSpeed), 25, (paddingTop - 8) * 3, 16, WHITE);
+	
 	 
 }
 
@@ -262,7 +266,7 @@ void atomSpawning() {
 			selectingCharge = true;
 			SetMouseCursor(MOUSE_CURSOR_DEFAULT);
 			spawningUI(elapsed, true);
-			TraceLog(LOG_INFO, "enter: %d", spawningCount);
+			//TraceLog(LOG_INFO, "enter: %d", spawningCount);
 			selectionStartTime = GetTime();
 			if(spawningCount == 0){
 				spawningCount = 1;
@@ -359,14 +363,29 @@ void deleteSelectedAtoms(){
 	}
 }
 
+void cameraControls(){
+	if(IsKeyDown(KEY_U)){
+		camera.zoom *= 1.01;
+	}
+	if(IsKeyDown(KEY_O)){
+		camera.zoom /= 1.01;
+	}
+}
+
 void userActions(){
 
 	atomSpawning();
 	circleSelect();
 	arrowMoving();
-	debugActions();
+	cameraControls();
 }
 
+void setupCamera(){
+	camera.target = (Vector2){0, 0};
+	camera.offset = (Vector2){0, 0};
+	camera.rotation = 0.0f;
+	camera.zoom = 1.0f;
+}
 
 
 
@@ -388,7 +407,8 @@ int main(int argc, char** argv) {
 	double pausedTime = 0.0;
 	double totalPausedDuration = 0.0;
 
-	scrollActionSpeed = 16;
+	scrollActionSpeed = 32;
+	
 	
 
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
@@ -398,6 +418,9 @@ int main(int argc, char** argv) {
 	Texture2D textureProton = LoadTexture("assets/proton.png");
 	Texture2D textureNeutron = LoadTexture("assets/neutron.png");
 	Texture2D textureElectron = LoadTexture("assets/electron.png");
+	
+
+	setupCamera();
 
 	SetTraceLogLevel(LOG_INFO);  // some thhing for logs
 
@@ -432,45 +455,55 @@ int main(int argc, char** argv) {
    	    BeginDrawing();
 
         ClearBackground(BLACK);
-
+		BeginMode2D(camera);
+		
 		userActions();
 
 		Texture textureToRender;
+		int centering;
 		for(int i = 0; i < (int)atomCount; i++){
 			switch (atomsList[i].charge){
 				case -1:
 					textureToRender = textureElectron;
+					centering = 8;
 					break;
 				case 0:
 					textureToRender = textureNeutron;
+					centering = 16;
 					break;
 				case 1:
 					textureToRender = textureProton;
+					centering = 16;
 					break;
 				defalut:
 					TraceLog(LOG_INFO, "ERROR: while selecting texture for particle based on charge; invalid charge");
 					break;
 			}
-			DrawTexture(textureToRender, atomsList[i].pos.x - atomsList[i].size/2, atomsList[i].pos.y - atomsList[i].size/2, WHITE);
+			DrawTexture(textureToRender, atomsList[i].pos.x - centering + 1, atomsList[i].pos.y - centering + 1, WHITE);
 			if(atomsList[i].selected == true) {
-				DrawRectangleLinesEx((Rectangle){atomsList[i].pos.x - atomsList[i].size/2,
-										atomsList[i].pos.y - atomsList[i].size/2,
-										atomsList[i].size, atomsList[i].size}, 2.0f, YELLOW);
+				DrawCircleLines(atomsList[i].pos.x + 1, atomsList[i].pos.y + 1, centering, YELLOW);
+				DrawCircleLines(atomsList[i].pos.x + 1, atomsList[i].pos.y + 1, centering + 1, YELLOW);
+				DrawCircleLines(atomsList[i].pos.x + 1, atomsList[i].pos.y + 1, centering + 2, YELLOW);
 			}
 
  		}
 		
-	
+		debugActions();
+		
+		EndMode2D();
 
 		DrawText(TextFormat("Simulation time %.1f", elapsedTime), 25, paddingTop, 16, WHITE);
 		DrawText(TextFormat("dt: %.3f ms", GetFrameTime() * 1000), 25, (paddingTop - 5) * 2, 16, WHITE);
-		
+		DrawText(TextFormat("Brush size: %.0f px", scrollActionSpeed), 25, (paddingTop - 8) * 3, 16, WHITE);
+		DrawCircleLinesV(GetMousePosition(), scrollActionSpeed, WHITE);
+
 		if(!isPaused) {
 
 		} else {
 			DrawText("Paused! Press P to unpause.", 225, 25, 16, RED);
 		}
-
+		
+		
         EndDrawing();
     }
 
