@@ -134,7 +134,6 @@ void circleSelect(){
 				if(IsKeyPressed(KEY_S)){
 					for(int i = 0; i < (int)atomCount; i++){
 						atomsList[i].selected = false;
-						cicleCenter.y * camera;
 						if(CheckCollisionPointCircle(atomsList[i].pos, 
 									GetScreenToWorld2D(circleCenter, camera),
 									scrollActionSpeed / camera.zoom)){
@@ -162,7 +161,7 @@ multiSpawningInfo spawningUI(double elapsed, bool reset){
 		TraceLog(LOG_INFO, "RESETED STRING");
 	}
 	bool typing = true;
-	Rectangle textBox = (Rectangle){5, 5, GetScreenWidth() - 10, 25};
+	Rectangle textBox = (Rectangle){5, 5, (GetScreenWidth() - 10) / camera.zoom, 25 / camera.zoom};
 	static int frameCounter = 0;
 	
 	
@@ -185,7 +184,10 @@ multiSpawningInfo spawningUI(double elapsed, bool reset){
 	
 	DrawText(inputString, 10, 14, 16 ,WHITE);
 	DrawRectangleRoundedLines(textBox, 0.4f, 1, WHITE);
-	DrawLineEx((Vector2){10, 30}, (Vector2){(GetScreenWidth() - 10) - (elapsed/selectionDuration * (GetScreenWidth() - 20)), 30}, 2.0f, RED);
+	DrawLineEx(
+			(Vector2){10 / camera.zoom, 30 / camera.zoom}, 
+			(Vector2){((GetScreenWidth() - 10) - (elapsed/selectionDuration * (GetScreenWidth() - 20) / camera.zoom)), 30}, 
+			2.0f, RED);
 	int countToReturn = atoi(inputString);
 	multiSpawningInfo returnThing = (multiSpawningInfo){countToReturn, 0};
 	return returnThing;
@@ -206,7 +208,7 @@ short selectingChargeUI(double elapsed, bool reset) {
 			selectedCharge = -1;
 			chosen = true;
 		}
-		Rectangle textBox = (Rectangle){5, 5, GetScreenWidth() - 10, 25};
+		Rectangle textBox = (Rectangle){5, 5, (GetScreenWidth() - 10) / camera.zoom, 25 / camera.zoom};
 		DrawRectangleRoundedLines(textBox, 0.4f, 1, WHITE);
 		DrawLineEx(
 				(Vector2){10 - halfScreenWidth, 30 - halfScreenHeight},
@@ -446,8 +448,8 @@ int main(int argc, char** argv) {
 			}
 		}
 		
-		halfScreenWidth = GetScreenWidth() / 2;
-		halfScreenHeight = GetScreenHeight() / 2;
+		halfScreenWidth = (float){GetScreenWidth()} / 2;
+		halfScreenHeight = (float){GetScreenHeight()} / 2;
 		
 
 		double elapsedTime;
