@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <raymath.h>
+
 typedef struct {
 	Vector2 pos;
 	Vector2 force;
@@ -42,6 +43,9 @@ size_t atomCount = 0;
 bool isPaused = false;
 float scrollActionSpeed;
 Camera2D camera = { 0 };
+
+float halfScreenWidth;
+float halfScreenHeight;
 
 Vector2 randomInCircle(Vector2 center, float radius){
 	float theta = (float)GetRandomValue(0, 360);
@@ -116,7 +120,7 @@ void circleSelect(){
 				TraceLog(LOG_INFO, "%.1f, %.1f vecttisr mouse", GetMousePosition().x, GetMousePosition().y);
 				if(IsKeyPressed(KEY_S)){
 					for(int i = 0; i < (int)atomCount; i++){
-						if(CheckCollisionPointCircle(atomsList[i].pos, circleCenter , scrollActionSpeed)){
+						if(CheckCollisionPointCircle(atomsList[i].pos, GetScreenToWorld2D(circleCenter, camera), scrollActionSpeed / camera.zoom)){
 							atomsList[i].selected = true;
 							selected++;
 						}
@@ -130,9 +134,10 @@ void circleSelect(){
 				if(IsKeyPressed(KEY_S)){
 					for(int i = 0; i < (int)atomCount; i++){
 						atomsList[i].selected = false;
+						cicleCenter.y * camera;
 						if(CheckCollisionPointCircle(atomsList[i].pos, 
-									(Vector2){circleCenter.x * camera.zoom, circleCenter.y * camera.zoom},
-									scrollActionSpeed)){
+									GetScreenToWorld2D(circleCenter, camera),
+									scrollActionSpeed / camera.zoom)){
 							atomsList[i].selected = true;
 							selected++;
 						}
@@ -203,7 +208,10 @@ short selectingChargeUI(double elapsed, bool reset) {
 		}
 		Rectangle textBox = (Rectangle){5, 5, GetScreenWidth() - 10, 25};
 		DrawRectangleRoundedLines(textBox, 0.4f, 1, WHITE);
-		DrawLineEx((Vector2){10, 30}, (Vector2){(GetScreenWidth() - 10) - (elapsed/selectionDuration * (GetScreenWidth() - 20)), 30}, 2.0f, RED);
+		DrawLineEx(
+				(Vector2){10 - halfScreenWidth, 30 - halfScreenHeight},
+				(Vector2){(GetScreenWidth() - 10) - (elapsed/selectionDuration * (GetScreenWidth() - 20)) - halfScreenWidth, 30 - halfScreenHeight},
+				2.0f, RED);
 
 		if(chosen){
 			return selectedCharge;
@@ -382,7 +390,7 @@ void userActions(){
 
 void setupCamera(){
 	camera.target = (Vector2){0, 0};
-	camera.offset = (Vector2){0, 0};
+	camera.offset = (Vector2){halfScreenWidth, halfScreenHeight};
 	camera.rotation = 0.0f;
 	camera.zoom = 1.0f;
 }
@@ -438,6 +446,8 @@ int main(int argc, char** argv) {
 			}
 		}
 		
+		halfScreenWidth = GetScreenWidth() / 2;
+		halfScreenHeight = GetScreenHeight() / 2;
 		
 
 		double elapsedTime;
