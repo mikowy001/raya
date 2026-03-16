@@ -302,7 +302,7 @@ void atomSpawning() {
 	if (chosen == true) {
 		selectingCharge = false;
 		
-		atomSpawn(randomInCircle(GetMousePosition(), scrollActionSpeed), chargeToSpawn, 0, spawningCount, true);
+		atomSpawn(randomInCircle(Vector2Subtract(GetMousePosition(), camera.target), scrollActionSpeed), chargeToSpawn, 0, spawningCount, true);
 		
 		chosen = false;
 		
@@ -408,6 +408,33 @@ void setupCamera(){
 	camera.zoom = 1.0f;
 }
 
+void atomPhysics(){
+	
+	if(atomCount > 0){
+		for(int i = 0; i < atomCount; i ++){
+		
+			for(int j = 0; i < atomCount; j++){
+			
+				if(i = j) break;
+			
+				float dt = GetFrameTime();
+				int iCharge = atomsList[i].charge;
+				int jCharge = atomsList[j].charge;
+				Vector2 direction = Vector2Subtract(atomsList[i].pos, atomsList[j].pos);
+				Vector2 dirNormalized = Vector2Normalize(direction);
+				float force = 100 * (float){iCharge * jCharge} / Vector2DotProduct(atomsList[i].pos, atomsList[j].pos);
+				float distance = Vector2Distance(atomsList[i].pos, atomsList[j].pos);
+				Vector2 vF;
+				if(distance > 10){
+					vF = Vector2Scale(dirNormalized, force);
+				}
+				
+				atomsList[i].pos = Vector2Add(atomsList[i].pos, Vector2Scale(vF, dt));
+			}
+		}
+	}
+}
+
 
 
 int main(int argc, char** argv) {
@@ -481,6 +508,8 @@ int main(int argc, char** argv) {
         ClearBackground(BLACK);
 		
 		atomSpawning();
+
+		atomPhysics();
 
 		BeginMode2D(camera);
 		
