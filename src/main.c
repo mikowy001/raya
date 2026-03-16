@@ -49,7 +49,7 @@ float halfScreenHeight;
 
 Vector2 randomInCircle(Vector2 center, float radius){
 	float theta = (float)GetRandomValue(0, 360);
-	float r = sqrtf(GetRandomValue(0, radius * radius));
+	float r = sqrtf(GetRandomValue(1, radius * radius));
 	Vector2 toReturn = (Vector2){(float)center.x + r * cosf(theta), (float)center.y + r * sinf(theta)};
 	return toReturn;
 }
@@ -161,7 +161,7 @@ multiSpawningInfo spawningUI(double elapsed, bool reset){
 		TraceLog(LOG_INFO, "RESETED STRING");
 	}
 	bool typing = true;
-	Rectangle textBox = (Rectangle){5, 5, (GetScreenWidth() - 10) / camera.zoom, 25 / camera.zoom};
+	Rectangle textBox = (Rectangle){5, 5, GetScreenWidth() - 10, 25};
 	static int frameCounter = 0;
 	
 	
@@ -185,8 +185,8 @@ multiSpawningInfo spawningUI(double elapsed, bool reset){
 	DrawText(inputString, 10, 14, 16 ,WHITE);
 	DrawRectangleRoundedLines(textBox, 0.4f, 1, WHITE);
 	DrawLineEx(
-			(Vector2){10 / camera.zoom, 30 / camera.zoom}, 
-			(Vector2){((GetScreenWidth() - 10) - (elapsed/selectionDuration * (GetScreenWidth() - 20) / camera.zoom)), 30}, 
+			(Vector2){10, 30}, 
+			(Vector2){(GetScreenWidth() - 10) - (elapsed/selectionDuration * (GetScreenWidth() - 20)), 30}, 
 			2.0f, RED);
 	int countToReturn = atoi(inputString);
 	multiSpawningInfo returnThing = (multiSpawningInfo){countToReturn, 0};
@@ -208,11 +208,11 @@ short selectingChargeUI(double elapsed, bool reset) {
 			selectedCharge = -1;
 			chosen = true;
 		}
-		Rectangle textBox = (Rectangle){5, 5, (GetScreenWidth() - 10) / camera.zoom, 25 / camera.zoom};
+		Rectangle textBox = (Rectangle){5, 5, GetScreenWidth() - 10, 25};
 		DrawRectangleRoundedLines(textBox, 0.4f, 1, WHITE);
 		DrawLineEx(
-				(Vector2){10 - halfScreenWidth, 30 - halfScreenHeight},
-				(Vector2){(GetScreenWidth() - 10) - (elapsed/selectionDuration * (GetScreenWidth() - 20)) - halfScreenWidth, 30 - halfScreenHeight},
+				(Vector2){10, 30},
+				(Vector2){(GetScreenWidth() - 10) - (elapsed/selectionDuration * GetScreenWidth() - 20), 30},
 				2.0f, RED);
 
 		if(chosen){
@@ -380,19 +380,30 @@ void cameraControls(){
 	if(IsKeyDown(KEY_O)){
 		camera.zoom /= 1.01;
 	}
+	if(IsKeyDown(KEY_I)){
+		camera.target = Vector2Add(camera.target, (Vector2){0, -(scrollActionSpeed / 4 / camera.zoom)});
+	}
+	if(IsKeyDown(KEY_K)){
+		camera.target = Vector2Add(camera.target, (Vector2){0, scrollActionSpeed / 4 / camera.zoom});
+	}
+	if(IsKeyDown(KEY_L)){
+		camera.target = Vector2Add(camera.target, (Vector2){scrollActionSpeed / 4 / camera.zoom, 0});
+	}	
+	if(IsKeyDown(KEY_J)){
+		camera.target = Vector2Add(camera.target, (Vector2){-(scrollActionSpeed / 4 / camera.zoom), 0});
+	}
 }
 
 void userActions(){
-
-	atomSpawning();
+	
 	circleSelect();
 	arrowMoving();
 	cameraControls();
 }
 
 void setupCamera(){
-	camera.target = (Vector2){0, 0};
-	camera.offset = (Vector2){halfScreenWidth, halfScreenHeight};
+	camera.target = (Vector2){halfScreenWidth, halfScreenHeight};
+	camera.offset = (Vector2){0, 0};
 	camera.rotation = 0.0f;
 	camera.zoom = 1.0f;
 }
@@ -401,6 +412,7 @@ void setupCamera(){
 
 int main(int argc, char** argv) {
 	(void)argc;
+	atomSpawning();
 	(void)argv;
 
     const int screenWidth = 800;
@@ -467,6 +479,9 @@ int main(int argc, char** argv) {
    	    BeginDrawing();
 
         ClearBackground(BLACK);
+		
+		atomSpawning();
+
 		BeginMode2D(camera);
 		
 		userActions();
@@ -503,7 +518,7 @@ int main(int argc, char** argv) {
 		debugActions();
 		
 		EndMode2D();
-
+		
 		DrawText(TextFormat("Simulation time %.1f", elapsedTime), 25, paddingTop, 16, WHITE);
 		DrawText(TextFormat("dt: %.3f ms", GetFrameTime() * 1000), 25, (paddingTop - 5) * 2, 16, WHITE);
 		DrawText(TextFormat("Brush size: %.0f px", scrollActionSpeed), 25, (paddingTop - 8) * 3, 16, WHITE);
