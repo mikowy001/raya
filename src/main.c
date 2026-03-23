@@ -9,7 +9,7 @@
 
 typedef struct {
 	Vector2 pos;
-	Vector2 force;
+	Vector2 vel;
 	int charge;
     int rot;
 	float size;
@@ -25,13 +25,30 @@ typedef struct {
 //GLOBAL SETTINGS !!!
 int mouseWheelSensivity = 10;
 //arrow moving
-float movementSpeed = 1.5;
+float movementSpeed = 10;
 float rotationSpeed = 2.5;
 //spawningUI SETTINGS
 #define MAXINPUTCHARS  50
 const float selectionDuration = 10.0f;
 //rendering SETTINGS
 
+//KEYBINDS !!!
+int AddKey = KEY_G;
+int selectKey = KEY_F;
+int deleteKey = KEY_R;
+
+int camMovementUp = KEY_W;
+int camMovementDown = KEY_S;
+int camMovementLeft = KEY_A;
+int camMovementRight = KEY_D;
+
+int camZoomOut = KEY_Q;
+int camZoomIn = KEY_E;
+
+int pauseKey = KEY_P;
+
+//physics SETTINGS
+int newtonianConst = 25000;
 
 //info texts SETTINGS
 int paddingTop = 35;
@@ -92,7 +109,7 @@ void atomSpawn(Vector2 pos, int charge, int rotation, int count, bool random) {
 			}
 		}
 		atomsList[atomCount + i].selected = false;
-		atomsList[atomCount + i].force = (Vector2){0, 0};
+		atomsList[atomCount + i].vel = (Vector2){0, 0};
 
 	}
 
@@ -100,6 +117,16 @@ void atomSpawn(Vector2 pos, int charge, int rotation, int count, bool random) {
 	//TraceLog(LOG_INFO, "debug: %d", scrollActionSpeed);  debug
 	TraceLog(LOG_INFO, "DZIALA TUTAJ");
 	
+}
+
+void atomDelete(size_t co) {
+	for(size_t i = co; i < atomCount - 1; i++) {
+		atomsList[i] = atomsList[i - 1];
+	}
+
+	atomsList = realloc(atomsList, sizeof(atom) * (atomCount - 1));
+
+	atomCount--;
 }
 
 
@@ -118,7 +145,7 @@ void circleSelect(){
 		int selected = 0;
 			if(IsKeyDown(KEY_LEFT_SHIFT)){
 				TraceLog(LOG_INFO, "%.1f, %.1f vecttisr mouse", GetMousePosition().x, GetMousePosition().y);
-				if(IsKeyPressed(KEY_S)){
+				if(IsKeyPressed(selectKey)){
 					for(int i = 0; i < (int)atomCount; i++){
 						if(CheckCollisionPointCircle(atomsList[i].pos, GetScreenToWorld2D(circleCenter, camera), scrollActionSpeed / camera.zoom)){
 							atomsList[i].selected = true;
@@ -131,7 +158,7 @@ void circleSelect(){
 			}
 			if(!IsKeyDown(KEY_LEFT_SHIFT)){
 
-				if(IsKeyPressed(KEY_S)){
+				if(IsKeyPressed(selectKey)){
 					for(int i = 0; i < (int)atomCount; i++){
 						atomsList[i].selected = false;
 						if(CheckCollisionPointCircle(atomsList[i].pos, 
@@ -242,7 +269,7 @@ void atomSpawning() {
 		shiftWasPressed = true;
 	}
 
-	if(IsKeyPressed(KEY_A)){
+	if(IsKeyPressed(AddKey)){
 		selectionStartTime = GetTime();
 		if(shiftWasPressed){
 			enteringNumbers = true;
@@ -318,34 +345,35 @@ void arrowMoving(){
 			if(IsKeyDown(KEY_UP)) {
 				for(int i = 0; i < (int)atomCount; i++){
 						if(atomsList[i].selected == true) {
-							atomsList[i].pos.y = atomsList[i].pos.y - movementSpeed;
+							atomsList[i].vel.y = atomsList[i].vel.y - movementSpeed;
 						}
 				}
 			}
 			if(IsKeyDown(KEY_DOWN)) {
 				for(int i = 0; i < (int)atomCount; i++){
 						if(atomsList[i].selected == true) {
-							atomsList[i].pos.y = atomsList[i].pos.y + movementSpeed;
+							atomsList[i].vel.y = atomsList[i].vel.y + movementSpeed;
 						}
 				}
 			}
 			if(IsKeyDown(KEY_LEFT)) {
 				for(int i = 0; i < (int)atomCount; i++){
 						if(atomsList[i].selected == true) {
-							atomsList[i].pos.x = atomsList[i].pos.x - movementSpeed;
+							atomsList[i].vel.x = atomsList[i].vel.x - movementSpeed;
 						}
 				}
 			}
 			if(IsKeyDown(KEY_RIGHT)) {
 				for(int i = 0; i < (int)atomCount; i++){
 						if(atomsList[i].selected == true) {
-							atomsList[i].pos.x = atomsList[i].pos.x + movementSpeed;
+							atomsList[i].vel.x = atomsList[i].vel.x + movementSpeed;
 						}
 				}
 			}
 
 
-
+			//TODO rotate the selected atoms while using mouse as center  
+			
 			if(IsKeyDown(KEY_Q)) { 
 				atomsList[0].rot = atomsList[0].rot - rotationSpeed; 
 			}
@@ -364,7 +392,7 @@ void debugActions(){
 }
 
 void deleteSelectedAtoms(){
-	if(IsKeyPressed(KEY_D)){
+	if(IsKeyPressed(deleteKey)){
 		for(int i = 0; i < atomCount; i++){
 			if(atomsList[i].selected == true){
 				//I THINK I NEED TO WRITE A FUNCTION FOR DELETING CERTIAN ATOMS.  MAYBE SQYD WILL DO IT? 
@@ -374,22 +402,22 @@ void deleteSelectedAtoms(){
 }
 
 void cameraControls(){
-	if(IsKeyDown(KEY_U)){
+	if(IsKeyDown(camZoomIn)){
 		camera.zoom *= 1.01;
 	}
-	if(IsKeyDown(KEY_O)){
+	if(IsKeyDown(camZoomOut)){
 		camera.zoom /= 1.01;
 	}
-	if(IsKeyDown(KEY_I)){
+	if(IsKeyDown(camMovementUp)){
 		camera.target = Vector2Add(camera.target, (Vector2){0, -(scrollActionSpeed / 4 / camera.zoom)});
 	}
-	if(IsKeyDown(KEY_K)){
+	if(IsKeyDown(camMovementDown)){
 		camera.target = Vector2Add(camera.target, (Vector2){0, scrollActionSpeed / 4 / camera.zoom});
 	}
-	if(IsKeyDown(KEY_L)){
+	if(IsKeyDown(camMovementRight)){
 		camera.target = Vector2Add(camera.target, (Vector2){scrollActionSpeed / 4 / camera.zoom, 0});
 	}	
-	if(IsKeyDown(KEY_J)){
+	if(IsKeyDown(camMovementLeft)){
 		camera.target = Vector2Add(camera.target, (Vector2){-(scrollActionSpeed / 4 / camera.zoom), 0});
 	}
 }
@@ -402,8 +430,8 @@ void userActions(){
 }
 
 void setupCamera(){
-	camera.target = (Vector2){halfScreenWidth, halfScreenHeight};
-	camera.offset = (Vector2){0, 0};
+	camera.target = (Vector2){0, 0};
+	camera.offset = (Vector2){GetScreenWidth(), GetScreenHeight()};
 	camera.rotation = 0.0f;
 	camera.zoom = 1.0f;
 }
@@ -411,28 +439,32 @@ void setupCamera(){
 void atomPhysics(){
 	
 	if(atomCount > 0){
-		for(int i = 0; i < atomCount; i ++){
+		for(size_t i = 0; i < atomCount; i++){
 		
-			for(int j = 0; i < atomCount; j++){
+			for(size_t j = 0; i < atomCount; j++){
 			
-				if(i = j) break;
+				if(i == j) break;
 			
-				float dt = GetFrameTime();
 				int iCharge = atomsList[i].charge;
 				int jCharge = atomsList[j].charge;
 				Vector2 direction = Vector2Subtract(atomsList[i].pos, atomsList[j].pos);
 				Vector2 dirNormalized = Vector2Normalize(direction);
-				float force = 100 * (float){iCharge * jCharge} / Vector2DotProduct(atomsList[i].pos, atomsList[j].pos);
+				float force = ( newtonianConst * (int){iCharge * jCharge} ) / Vector2DotProduct(atomsList[i].pos, atomsList[j].pos);
 				float distance = Vector2Distance(atomsList[i].pos, atomsList[j].pos);
 				Vector2 vF;
-				if(distance > 10){
+				if(distance >= 10){
 					vF = Vector2Scale(dirNormalized, force);
-				}
+				} //else {
+					//break;
+				//}
 				
-				atomsList[i].pos = Vector2Add(atomsList[i].pos, Vector2Scale(vF, dt));
+				atomsList[i].vel = Vector2Add(atomsList[i].vel, vF);
+				atomsList[i].pos = Vector2Add(atomsList[i].pos, Vector2Scale(atomsList[i].vel, GetFrameTime()));
+				
 			}
 		}
 	}
+	if(IsKeyDown(KEY_N)){TraceLog(LOG_INFO, "x=%.1f, y=%.1f", atomsList[1].pos.x, atomsList[1].pos.y);}
 }
 
 
@@ -476,7 +508,7 @@ int main(int argc, char** argv) {
     SetTargetFPS(60);
 	
     while(!WindowShouldClose()) {	
-		if(IsKeyPressed(KEY_P)){
+		if(IsKeyPressed(pauseKey)){
 			if(isPaused) {
 				totalPausedDuration += GetTime() - pausedTime;
 				isPaused = false;
@@ -501,16 +533,16 @@ int main(int argc, char** argv) {
 		
 		
 
-
 	
    	    BeginDrawing();
 
         ClearBackground(BLACK);
 		
 		atomSpawning();
-
-		atomPhysics();
-
+		
+		if(!isPaused){
+			atomPhysics();
+		}
 		BeginMode2D(camera);
 		
 		userActions();
