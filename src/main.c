@@ -8,38 +8,8 @@
 #include <raymath.h>
 
 #include "./universe.h"
+#include "./dataInit.c"
 
-int mouseWheelSensivity = 10;
-float movementSpeed = 10;
-float rotationSpeed = 2.5;
-const float selectionDuration = 10.0f;
-int AddKey = KEY_G;
-int selectKey = KEY_F;
-int deleteKey = KEY_R;
-
-int camMovementUp = KEY_W;
-int camMovementDown = KEY_S;
-int camMovementLeft = KEY_A;
-int camMovementRight = KEY_D;
-
-int camZoomOut = KEY_Q;
-int camZoomIn = KEY_E;
-
-int pauseKey = KEY_P;
-
-int newtonianConst = 25000;
-
-int paddingTop = 35;
-
-atom* atomsList = NULL;
-size_t atomCount = 0;
-
-bool isPaused = false;
-float scrollActionSpeed;
-Camera2D camera = { 0 };
-
-float halfScreenWidth;
-float halfScreenHeight;
 
 Vector2 randomInCircle(Vector2 center, float radius){
 	float theta = (float)GetRandomValue(0, 360) * DEG2RAD;
@@ -422,10 +392,11 @@ int main(int argc, char** argv) {
 	(void)argc;
 	atomSpawning();
 	(void)argv;
-
+	
     const int screenWidth = 800;
     const int screenHeight = 800;
-
+	
+	initData();
 	
 	atomSpawn((Vector2){250, 250}, 1, 0, 1, false);
 	

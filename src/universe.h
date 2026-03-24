@@ -30,7 +30,7 @@ extern float movementSpeed;
 extern float rotationSpeed;
 //spawningUI SETTINGS
 #define MAXINPUTCHARS  50
-extern const float selectionDuration;
+extern float selectionDuration;
 //rendering SETTINGS
 
 //KEYBINDS !!!
@@ -63,6 +63,8 @@ extern Camera2D camera;
 
 extern float halfScreenWidth;
 extern float halfScreenHeight;
+
+extern Camera2D camera;
 
 //physics
 void atomPhysics();
