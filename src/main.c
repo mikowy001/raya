@@ -42,9 +42,11 @@ float halfScreenWidth;
 float halfScreenHeight;
 
 Vector2 randomInCircle(Vector2 center, float radius){
-	float theta = (float)GetRandomValue(0, 360);
+	float theta = (float)GetRandomValue(0, 360) * DEG2RAD;
 	float r = sqrtf(GetRandomValue(1, radius * radius));
+
 	Vector2 toReturn = (Vector2){(float)center.x + r * cosf(theta), (float)center.y + r * sinf(theta)};
+
 	return toReturn;
 }
 
@@ -306,7 +308,7 @@ void atomSpawning() {
 	if (chosen == true) {
 		selectingCharge = false;
 		
-		atomSpawn(randomInCircle(Vector2Subtract(GetMousePosition(), camera.target), scrollActionSpeed), chargeToSpawn, 0, spawningCount, true);
+		atomSpawn(randomInCircle(GetScreenToWorld2D(GetMousePosition(), camera), scrollActionSpeed), chargeToSpawn, 0, spawningCount, true);
 		
 		chosen = false;
 		
