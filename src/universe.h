@@ -1,5 +1,11 @@
+#ifndef RAYA_UNIVERSE_H
+#define RAYA_UNIVERSE_H
+
 #include <raylib.h>
+#include <raymath.h>
+
 #include <stdbool.h>
+#include <stddef.h>
 
 //core data
 typedef struct {
@@ -18,48 +24,47 @@ typedef struct {
 } multiSpawningInfo;
 
 //GLOBAL SETTINGS !!!
-int mouseWheelSensivity = 10;
+extern int mouseWheelSensivity;
 //arrow moving
-float movementSpeed = 10;
-float rotationSpeed = 2.5;
+extern float movementSpeed;
+extern float rotationSpeed;
 //spawningUI SETTINGS
 #define MAXINPUTCHARS  50
-const float selectionDuration = 10.0f;
+extern const float selectionDuration;
 //rendering SETTINGS
 
 //KEYBINDS !!!
-int AddKey = KEY_G;
-int selectKey = KEY_F;
-int deleteKey = KEY_R;
+extern int AddKey;
+extern int selectKey;
+extern int deleteKey;
 
-int camMovementUp = KEY_W;
-int camMovementDown = KEY_S;
-int camMovementLeft = KEY_A;
-int camMovementRight = KEY_D;
+extern int camMovementUp;
+extern int camMovementDown;
+extern int camMovementLeft;
+extern int camMovementRight;
 
-int camZoomOut = KEY_Q;
-int camZoomIn = KEY_E;
+extern int camZoomOut;
+extern int camZoomIn;
 
-int pauseKey = KEY_P;
+extern int pauseKey;
 
 //physics SETTINGS
-int newtonianConst = 25000;
+extern int newtonianConst;
 
 //info texts SETTINGS
-int paddingTop = 35;
+extern int paddingTop;
 
+extern atom* atomsList;
+extern size_t atomCount;
 
-atom* atomsList = NULL;
-size_t atomCount = 0;
+extern bool isPaused;
+extern float scrollActionSpeed;
+extern Camera2D camera;
 
-bool isPaused = false;
-float scrollActionSpeed;
-Camera2D camera = { 0 };
-
-float halfScreenWidth;
-float halfScreenHeight;
-
-
+extern float halfScreenWidth;
+extern float halfScreenHeight;
 
 //physics
 void atomPhysics();
+
+#endif
