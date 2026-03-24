@@ -9,11 +9,44 @@
 
 #include "./universe.h"
 
+int mouseWheelSensivity = 10;
+float movementSpeed = 10;
+float rotationSpeed = 2.5;
+const float selectionDuration = 10.0f;
+int AddKey = KEY_G;
+int selectKey = KEY_F;
+int deleteKey = KEY_R;
+
+int camMovementUp = KEY_W;
+int camMovementDown = KEY_S;
+int camMovementLeft = KEY_A;
+int camMovementRight = KEY_D;
+
+int camZoomOut = KEY_Q;
+int camZoomIn = KEY_E;
+
+int pauseKey = KEY_P;
+
+int newtonianConst = 25000;
+
+int paddingTop = 35;
+
+atom* atomsList = NULL;
+size_t atomCount = 0;
+
+bool isPaused = false;
+float scrollActionSpeed;
+Camera2D camera = { 0 };
+
+float halfScreenWidth;
+float halfScreenHeight;
 
 Vector2 randomInCircle(Vector2 center, float radius){
-	float theta = (float)GetRandomValue(0, 360);
+	float theta = (float)GetRandomValue(0, 360) * DEG2RAD;
 	float r = sqrtf(GetRandomValue(1, radius * radius));
+
 	Vector2 toReturn = (Vector2){(float)center.x + r * cosf(theta), (float)center.y + r * sinf(theta)};
+
 	return toReturn;
 }
 
@@ -275,7 +308,7 @@ void atomSpawning() {
 	if (chosen == true) {
 		selectingCharge = false;
 		
-		atomSpawn(randomInCircle(Vector2Subtract(GetMousePosition(), camera.target), scrollActionSpeed), chargeToSpawn, 0, spawningCount, true);
+		atomSpawn(randomInCircle(GetScreenToWorld2D(GetMousePosition(), camera), scrollActionSpeed), chargeToSpawn, 0, spawningCount, true);
 		
 		chosen = false;
 		
