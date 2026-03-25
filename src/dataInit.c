@@ -1,33 +1,37 @@
 #include "universe.h"
 
 
-void  initData(){
-	mouseWheelSensivity = 10;
-	movementSpeed = 10;
-	rotationSpeed = 2.5;
-	selectionDuration = 10.0f;
-	AddKey = KEY_G;
-	selectKey = KEY_F;
-	deleteKey = KEY_R;
+void initData(){
+	int mouseWheelSensivity = 10;
+	float movementSpeed = 10;
+	float rotationSpeed = 2.5;
+	const float selectionDuration = 10.0f;
+	int AddKey = KEY_G;
+	int selectKey = KEY_F;
+	int deleteKey = KEY_R;
 
-	camMovementUp = KEY_W;
-	camMovementDown = KEY_S;
-	camMovementLeft = KEY_A;
-	camMovementRight = KEY_D;
+	int camMovementUp = KEY_W;
+	int camMovementDown = KEY_S;
+	int camMovementLeft = KEY_A;
+	int camMovementRight = KEY_D;
 
-	camZoomOut = KEY_Q;
-	camZoomIn = KEY_E;
+	int camZoomOut = KEY_Q;
+	int camZoomIn = KEY_E;
 
-	pauseKey = KEY_P;
+	int pauseKey = KEY_P;
 
-	newtonianConst = 25000;
+	int newtonianConst = 25000;
 
-	paddingTop = 35;
+	int paddingTop = 35;
 
 	atom* atomsList = NULL;
 	size_t atomCount = 0;
 
 	bool isPaused = false;
-	scrollActionSpeed = 1;
+	float scrollActionSpeed;
 	Camera2D camera = { 0 };
+
+	float halfScreenWidth;
+	float halfScreenHeight;
+
 }

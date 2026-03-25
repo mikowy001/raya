@@ -8,7 +8,6 @@
 #include <raymath.h>
 
 #include "./universe.h"
-#include "./dataInit.c"
 
 
 Vector2 randomInCircle(Vector2 center, float radius){
@@ -382,7 +381,7 @@ void setupCamera(){
 	camera.target = (Vector2){0, 0};
 	camera.offset = (Vector2){GetScreenWidth(), GetScreenHeight()};
 	camera.rotation = 0.0f;
-	camera.zoom = 1.0f;
+	camera.zoom = 1.1f;
 }
 
 
