@@ -395,7 +395,6 @@ int main(int argc, char** argv) {
     const int screenWidth = 800;
     const int screenHeight = 800;
 	
-	initData();
 	
 	atomSpawn((Vector2){250, 250}, 1, 0, 1, false);
 	
