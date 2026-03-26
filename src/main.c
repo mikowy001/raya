@@ -67,17 +67,25 @@ void atomSpawn(Vector2 pos, int charge, int rotation, int count, bool random) {
 	
 }
 
-void atomDelete(size_t co) {
-	for(size_t i = co; i < atomCount - 1; i++) {
-		atomsList[i] = atomsList[i - 1];
-	}
+void atomDelete(size_t index) {
+    if (index >= atomCount) return;
 
-	atomsList = realloc(atomsList, sizeof(atom) * (atomCount - 1));
+    for (size_t i = index; i < atomCount - 1; i++) {
+        atomsList[i] = atomsList[i + 1];
+    }
 
-	atomCount--;
+    atomCount--;
+
+    if (atomCount > 0) {
+        atom* temp = realloc(atomsList, sizeof(atom) * atomCount);
+        if (temp != NULL) {
+            atomsList = temp;
+        }
+    } else {
+        free(atomsList);
+        atomsList = NULL;
+    }
 }
-
-
 
 void circleSelect(){
 		if(!isPaused){
@@ -277,7 +285,7 @@ void atomSpawning() {
 	if (chosen == true) {
 		selectingCharge = false;
 		
-		atomSpawn(randomInCircle(GetScreenToWorld2D(GetMousePosition(), camera), scrollActionSpeed), chargeToSpawn, 0, spawningCount, true);
+		atomSpawn(randomInCircle(GetMousePosition(), scrollActionSpeed), chargeToSpawn, 0, spawningCount, true);
 		
 		chosen = false;
 		
@@ -343,32 +351,13 @@ void deleteSelectedAtoms(){
 	if(IsKeyPressed(deleteKey)){
 		for(int i = 0; i < atomCount; i++){
 			if(atomsList[i].selected == true){
-				//I THINK I NEED TO WRITE A FUNCTION FOR DELETING CERTIAN ATOMS.  MAYBE SQYD WILL DO IT? 
+				atomDelete(i);		
 			}
 		}
 	}
 }
 
-void cameraControls(){
-	if(IsKeyDown(camZoomIn)){
-		camera.zoom *= 1.01;
-	}
-	if(IsKeyDown(camZoomOut)){
-		camera.zoom /= 1.01;
-	}
-	if(IsKeyDown(camMovementUp)){
-		camera.target = Vector2Add(camera.target, (Vector2){0, -(scrollActionSpeed / 4 / camera.zoom)});
-	}
-	if(IsKeyDown(camMovementDown)){
-		camera.target = Vector2Add(camera.target, (Vector2){0, scrollActionSpeed / 4 / camera.zoom});
-	}
-	if(IsKeyDown(camMovementRight)){
-		camera.target = Vector2Add(camera.target, (Vector2){scrollActionSpeed / 4 / camera.zoom, 0});
-	}	
-	if(IsKeyDown(camMovementLeft)){
-		camera.target = Vector2Add(camera.target, (Vector2){-(scrollActionSpeed / 4 / camera.zoom), 0});
-	}
-}
+
 
 void userActions(){
 	
@@ -377,12 +366,7 @@ void userActions(){
 	cameraControls();
 }
 
-void setupCamera(){
-	camera.target = (Vector2){0, 0};
-	camera.offset = (Vector2){GetScreenWidth(), GetScreenHeight()};
-	camera.rotation = 0.0f;
-	camera.zoom = 1.1f;
-}
+
 
 
 
@@ -413,13 +397,14 @@ int main(int argc, char** argv) {
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(screenWidth, screenHeight, "raya sim");
 	
+	SetExitKey(KEY_NULL);
 
 	Texture2D textureProton = LoadTexture("assets/proton.png");
 	Texture2D textureNeutron = LoadTexture("assets/neutron.png");
 	Texture2D textureElectron = LoadTexture("assets/electron.png");
 	
 
-	setupCamera();
+	initCamera();
 
 	SetTraceLogLevel(LOG_INFO);  // some thhing for logs
 

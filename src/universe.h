@@ -68,6 +68,7 @@ extern Camera2D camera;
 
 //physics
 void atomPhysics();
-
+void initCamera();
+void cameraControls();
 
 #endif
