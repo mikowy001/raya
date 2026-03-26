@@ -2,3 +2,5 @@ RAYA - SIM
 
 
 this is heavily work in progress, its hardly optimized and no helpful gui.
+
+in GPU branch, im currently implementing glsl compute shader to calculate atom physics. Ill also try to draw atoms with shaders instead of cpu.
