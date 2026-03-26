@@ -6,6 +6,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <rlgl.h>
 
 //core data
 typedef struct {
