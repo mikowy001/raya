@@ -372,15 +372,18 @@ int main(int argc, char** argv) {
     const int screenWidth = 800;
     const int screenHeight = 800;
 	
+	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+    InitWindow(screenWidth, screenHeight, "raya sim");
+	
 	shaderCompute = LoadShader(0, "src/compute.glsl");
 	dtLoc = GetShaderLocation(shaderCompute, "dt");
 	(void)dtLoc;
 	countLoc = GetShaderLocation(shaderCompute, "particleCount");
 	(void)countLoc;
 
-    ssbo = rlLoadShaderBuffer(sizeof(atom) * atomCount, atomsList, RL_DYNAMIC_COPY);
-
 	atomSpawn((Vector2){250, 250}, 1, 0, 1, false);
+
+    ssbo = rlLoadShaderBuffer(sizeof(atom) * atomCount, atomsList, RL_DYNAMIC_COPY);
 	
 	atomsList[0].pos = (Vector2){100, 100};
 	atomsList[0].size = 25;
@@ -391,9 +394,6 @@ int main(int argc, char** argv) {
 	double totalPausedDuration = 0.0;
 
 	scrollActionSpeed = 32;
-	
-	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
-    InitWindow(screenWidth, screenHeight, "raya sim");
 	
 	SetExitKey(KEY_NULL);
 
