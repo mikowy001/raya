@@ -67,6 +67,14 @@ extern float halfScreenHeight;
 
 extern Camera2D camera;
 
+//SHADERSSSSSSSSSSs
+extern Shader shaderCompute;
+extern int dtLoc;
+extern int countLoc;
+extern unsigned int ssbo;
+
+
+
 //physics
 void atomPhysics();
 void initCamera();

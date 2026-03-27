@@ -33,3 +33,4 @@ Camera2D camera = { 0 };
 float halfScreenWidth;
 float halfScreenHeight;
 
+

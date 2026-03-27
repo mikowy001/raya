@@ -380,6 +380,12 @@ int main(int argc, char** argv) {
     const int screenHeight = 800;
 	
 	
+	Shader shaderCompute = LoadShader(0, "src/compute.glsl");
+	int dtLoc = GetShaderLocation(shaderCompute, "dt");
+	int countLoc = GetShaderLocation(shaderCompute, "particleCount");
+
+    unsigned int ssbo = rlLoadShaderBuffer(sizeof(atom) * atomCount, atomsList, RL_DYNAMIC_COPY);
+
 	atomSpawn((Vector2){250, 250}, 1, 0, 1, false);
 	
 	atomsList[0].pos = (Vector2){100, 100};
@@ -505,6 +511,10 @@ int main(int argc, char** argv) {
 	UnloadTexture(textureElectron);
 	UnloadTexture(textureProton);
 	free(atomsList);
+    rlUnloadShaderBuffer(ssbo);
+    UnloadShader(shaderCompute);
+
+    CloseWindow();
 
     return 0;
 }
