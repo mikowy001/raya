@@ -30,7 +30,10 @@ bool isPaused = false;
 float scrollActionSpeed;
 Camera2D camera = { 0 };
 
-float halfScreenWidth;
-float halfScreenHeight;
+float halfScreenWidth = 0.0f;
+float halfScreenHeight = 0.0f;
 
-
+Shader shaderCompute = { 0 };
+int dtLoc = 0;
+int countLoc = 0;
+unsigned int ssbo = 0;

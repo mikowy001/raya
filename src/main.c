@@ -29,7 +29,7 @@ void atomSpawn(Vector2 pos, int charge, int rotation, int count, bool random) {
 	}
 	
 
-	for(unsigned int i = 0; i < count; i++){
+	for(int i = 0; i < count; i++){
 		
 		if(random){
 			atomsList[atomCount + i].pos = randomInCircle(GetMousePosition(), scrollActionSpeed);
@@ -146,7 +146,7 @@ multiSpawningInfo spawningUI(double elapsed, bool reset){
 	bool typing = true;
 	Rectangle textBox = (Rectangle){5, 5, GetScreenWidth() - 10, 25};
 	static int frameCounter = 0;
-	
+	(void)frameCounter;
 	
 	int key = GetCharPressed();
 	while (key > 0) {
@@ -172,11 +172,12 @@ multiSpawningInfo spawningUI(double elapsed, bool reset){
 			(Vector2){(GetScreenWidth() - 10) - (elapsed/selectionDuration * (GetScreenWidth() - 20)), 30}, 
 			2.0f, RED);
 	int countToReturn = atoi(inputString);
-	multiSpawningInfo returnThing = (multiSpawningInfo){countToReturn, 0};
+	multiSpawningInfo returnThing = (multiSpawningInfo){countToReturn, 0, typing};
 	return returnThing;
 }
 
 short selectingChargeUI(double elapsed, bool reset) {
+	(void)reset;
 		short selectedCharge = 1;
 		bool chosen = false;
 		if(IsKeyPressed(KEY_ONE)){
@@ -341,7 +342,7 @@ void arrowMoving(){
 }
 void debugActions(){
 	if(IsKeyDown(KEY_F1)){
-		for(int i = 0; i < atomCount; i++){
+		for(size_t i = 0; i < atomCount; i++){
 			DrawPixel(atomsList[i].pos.x, atomsList[i].pos.y, GREEN);  //press F1 to see the atoms center
 		}
 	}
@@ -349,7 +350,7 @@ void debugActions(){
 
 void deleteSelectedAtoms(){
 	if(IsKeyPressed(deleteKey)){
-		for(int i = 0; i < atomCount; i++){
+		for(size_t i = 0; i < atomCount; i++){
 			if(atomsList[i].selected == true){
 				atomDelete(i);		
 			}
@@ -357,19 +358,11 @@ void deleteSelectedAtoms(){
 	}
 }
 
-
-
 void userActions(){
-	
 	circleSelect();
 	arrowMoving();
 	cameraControls();
 }
-
-
-
-
-
 
 int main(int argc, char** argv) {
 	(void)argc;
@@ -379,12 +372,13 @@ int main(int argc, char** argv) {
     const int screenWidth = 800;
     const int screenHeight = 800;
 	
-	
-	Shader shaderCompute = LoadShader(0, "src/compute.glsl");
-	int dtLoc = GetShaderLocation(shaderCompute, "dt");
-	int countLoc = GetShaderLocation(shaderCompute, "particleCount");
+	shaderCompute = LoadShader(0, "src/compute.glsl");
+	dtLoc = GetShaderLocation(shaderCompute, "dt");
+	(void)dtLoc;
+	countLoc = GetShaderLocation(shaderCompute, "particleCount");
+	(void)countLoc;
 
-    unsigned int ssbo = rlLoadShaderBuffer(sizeof(atom) * atomCount, atomsList, RL_DYNAMIC_COPY);
+    ssbo = rlLoadShaderBuffer(sizeof(atom) * atomCount, atomsList, RL_DYNAMIC_COPY);
 
 	atomSpawn((Vector2){250, 250}, 1, 0, 1, false);
 	
@@ -398,8 +392,6 @@ int main(int argc, char** argv) {
 
 	scrollActionSpeed = 32;
 	
-	
-
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(screenWidth, screenHeight, "raya sim");
 	
@@ -408,7 +400,6 @@ int main(int argc, char** argv) {
 	Texture2D textureProton = LoadTexture("assets/proton.png");
 	Texture2D textureNeutron = LoadTexture("assets/neutron.png");
 	Texture2D textureElectron = LoadTexture("assets/electron.png");
-	
 
 	initCamera();
 
@@ -457,7 +448,7 @@ int main(int argc, char** argv) {
 		userActions();
 
 		Texture textureToRender;
-		int centering;
+		int centering = 0;
 		for(int i = 0; i < (int)atomCount; i++){
 			switch (atomsList[i].charge){
 				case -1:
@@ -472,7 +463,7 @@ int main(int argc, char** argv) {
 					textureToRender = textureProton;
 					centering = 16;
 					break;
-				defalut:
+				default:
 					TraceLog(LOG_INFO, "ERROR: while selecting texture for particle based on charge; invalid charge");
 					break;
 			}

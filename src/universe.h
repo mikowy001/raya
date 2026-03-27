@@ -73,8 +73,6 @@ extern int dtLoc;
 extern int countLoc;
 extern unsigned int ssbo;
 
-
-
 //physics
 void atomPhysics();
 void initCamera();
