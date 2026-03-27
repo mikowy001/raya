@@ -16,6 +16,9 @@ typedef struct {
     int rot;
 	float size;
 	bool selected;
+	bool padding1;
+	bool padding2;
+	bool padding3;
 } atom;
 
 typedef struct {
@@ -77,5 +80,7 @@ extern unsigned int ssbo;
 void atomPhysics();
 void initCamera();
 void cameraControls();
+void updateSSBO();
+void initComputeShader();
 
 #endif

@@ -1,3 +1,4 @@
+#define GRAPHICS_API_OPENGL_43
 #include <math.h>
 #include <raylib.h>
 
@@ -62,6 +63,7 @@ void atomSpawn(Vector2 pos, int charge, int rotation, int count, bool random) {
 	}
 
 	atomCount = atomCount + count;
+	updateSSBO();
 	//TraceLog(LOG_INFO, "debug: %d", scrollActionSpeed);  debug
 	TraceLog(LOG_INFO, "DZIALA TUTAJ");
 	
@@ -366,30 +368,32 @@ void userActions(){
 
 int main(int argc, char** argv) {
 	(void)argc;
-	atomSpawning();
+	
 	(void)argv;
 	
     const int screenWidth = 800;
     const int screenHeight = 800;
 	
-	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+	SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_MSAA_4X_HINT | FLAG_VSYNC_HINT | FLAG_WINDOW_HIGHDPI);
     InitWindow(screenWidth, screenHeight, "raya sim");
 	
-	shaderCompute = LoadShader(0, "src/compute.glsl");
+
+	ssbo = rlLoadShaderBuffer(sizeof(atom) * atomCount, atomsList, RL_DYNAMIC_COPY);
+
+
+	initComputeShader();
 	dtLoc = GetShaderLocation(shaderCompute, "dt");
 	(void)dtLoc;
 	countLoc = GetShaderLocation(shaderCompute, "particleCount");
 	(void)countLoc;
 
-	atomSpawn((Vector2){250, 250}, 1, 0, 1, false);
-
-    ssbo = rlLoadShaderBuffer(sizeof(atom) * atomCount, atomsList, RL_DYNAMIC_COPY);
 	
+	
+	atomSpawn((Vector2){250, 250}, 1, 0, 1, false);
 	atomsList[0].pos = (Vector2){100, 100};
 	atomsList[0].size = 25;
 
-
-	double startTime = GetTime();
+		double startTime = GetTime();
 	double pausedTime = 0.0;
 	double totalPausedDuration = 0.0;
 
@@ -500,7 +504,7 @@ int main(int argc, char** argv) {
 	
 	UnloadTexture(textureProton);
 	UnloadTexture(textureElectron);
-	UnloadTexture(textureProton);
+	UnloadTexture(textureNeutron);
 	free(atomsList);
     rlUnloadShaderBuffer(ssbo);
     UnloadShader(shaderCompute);
