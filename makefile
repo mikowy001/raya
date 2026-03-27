@@ -1,4 +1,4 @@
-TARGET = compiled/raya-sim
+TARGET = compiled/raya
 TARGET_DIR = compiled
 OBJ_DIR = obj
 

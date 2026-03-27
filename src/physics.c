@@ -9,7 +9,7 @@ void atomPhysics() {
     SetShaderValue(shaderCompute, countLoc, &atomCount, SHADER_UNIFORM_INT);
         
     rlBindShaderBuffer(ssbo, 0);
-    rlComputeShaderDispatch((atomCount / 32) + 1, 1, 1);
+    rlComputeShaderDispatch((atomCount / 64) + 1, 1, 1);
     rlDisableShader();
 
     rlReadShaderBuffer(ssbo, atomsList, sizeof(atom) * atomCount, 0);
