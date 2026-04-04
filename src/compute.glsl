@@ -24,12 +24,12 @@ void main() {
     if (id >= particleCount) return;
 
     vec2 dV = vec2(0.0);
-    const float k = 100000; 
+    const float k = 10000; 
 
     for (int i = 0; i < particleCount; i++) {
         if (i == id) continue;
 
-        vec2 dir = atomsList[i].pos - atomsList[id].pos;
+        vec2 dir = atomsList[id].pos - atomsList[i].pos;
         float distSq = dot(dir, dir) + 0.1;
         float forceMag = k * (atomsList[id].charge * atomsList[i].charge) / distSq;
         

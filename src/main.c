@@ -1,14 +1,12 @@
-#define GRAPHICS_API_OPENGL_43
 #include <math.h>
-#include <raylib.h>
 
+#include "./universe.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <raymath.h>
 
-#include "./universe.h"
+
 
 
 Vector2 randomInCircle(Vector2 center, float radius){
@@ -57,7 +55,7 @@ void atomSpawn(Vector2 pos, int charge, int rotation, int count, bool random) {
 				exit(EXIT_FAILURE);
 			}
 		}
-		atomsList[atomCount + i].selected = false;
+		atomsList[atomCount + i].selected = 0;
 		atomsList[atomCount + i].vel = (Vector2){0, 0};
 
 	}
@@ -118,11 +116,11 @@ void circleSelect(){
 
 				if(IsKeyPressed(selectKey)){
 					for(int i = 0; i < (int)atomCount; i++){
-						atomsList[i].selected = false;
+						atomsList[i].selected = 0;
 						if(CheckCollisionPointCircle(atomsList[i].pos, 
 									GetScreenToWorld2D(circleCenter, camera),
 									scrollActionSpeed / camera.zoom)){
-							atomsList[i].selected = true;
+							atomsList[i].selected = 1;
 							selected++;
 						}
 					}
@@ -303,28 +301,28 @@ void arrowMoving(){
 			movementSpeed = scrollActionSpeed / 4;
 			if(IsKeyDown(KEY_UP)) {
 				for(int i = 0; i < (int)atomCount; i++){
-						if(atomsList[i].selected == true) {
+						if(atomsList[i].selected == 1) {
 							atomsList[i].vel.y = atomsList[i].vel.y - movementSpeed;
 						}
 				}
 			}
 			if(IsKeyDown(KEY_DOWN)) {
 				for(int i = 0; i < (int)atomCount; i++){
-						if(atomsList[i].selected == true) {
+						if(atomsList[i].selected == 1) {
 							atomsList[i].vel.y = atomsList[i].vel.y + movementSpeed;
 						}
 				}
 			}
 			if(IsKeyDown(KEY_LEFT)) {
 				for(int i = 0; i < (int)atomCount; i++){
-						if(atomsList[i].selected == true) {
+						if(atomsList[i].selected == 1) {
 							atomsList[i].vel.x = atomsList[i].vel.x - movementSpeed;
 						}
 				}
 			}
 			if(IsKeyDown(KEY_RIGHT)) {
 				for(int i = 0; i < (int)atomCount; i++){
-						if(atomsList[i].selected == true) {
+						if(atomsList[i].selected == 1) {
 							atomsList[i].vel.x = atomsList[i].vel.x + movementSpeed;
 						}
 				}
@@ -353,7 +351,7 @@ void debugActions(){
 void deleteSelectedAtoms(){
 	if(IsKeyPressed(deleteKey)){
 		for(size_t i = 0; i < atomCount; i++){
-			if(atomsList[i].selected == true){
+			if(atomsList[i].selected == 1){
 				atomDelete(i);		
 			}
 		}
@@ -375,11 +373,10 @@ int main(int argc, char** argv) {
     const int screenHeight = 800;
 	
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_MSAA_4X_HINT | FLAG_VSYNC_HINT | FLAG_WINDOW_HIGHDPI);
-    InitWindow(screenWidth, screenHeight, "raya sim");
+    InitWindow(screenWidth, screenHeight, "raya");
 	
 
-	ssbo = rlLoadShaderBuffer(sizeof(atom) * atomCount, atomsList, RL_DYNAMIC_COPY);
-
+	
 
 	initComputeShader();
 	dtLoc = GetShaderLocation(shaderCompute, "dt");
@@ -393,7 +390,9 @@ int main(int argc, char** argv) {
 	atomsList[0].pos = (Vector2){100, 100};
 	atomsList[0].size = 25;
 
-		double startTime = GetTime();
+	ssbo = rlLoadShaderBuffer(sizeof(atom) * atomCount, atomsList, RL_DYNAMIC_COPY);
+
+	double startTime = GetTime();
 	double pausedTime = 0.0;
 	double totalPausedDuration = 0.0;
 
@@ -410,6 +409,7 @@ int main(int argc, char** argv) {
 	SetTraceLogLevel(LOG_INFO);  // some thhing for logs
 
     SetTargetFPS(60);
+	
 	
     while(!WindowShouldClose()) {	
 		if(IsKeyPressed(pauseKey)){
@@ -472,7 +472,7 @@ int main(int argc, char** argv) {
 					break;
 			}
 			DrawTexture(textureToRender, atomsList[i].pos.x - centering + 1, atomsList[i].pos.y - centering + 1, WHITE);
-			if(atomsList[i].selected == true) {
+			if(atomsList[i].selected == 1) {
 				DrawCircleLines(atomsList[i].pos.x + 1, atomsList[i].pos.y + 1, centering, YELLOW);
 				DrawCircleLines(atomsList[i].pos.x + 1, atomsList[i].pos.y + 1, centering + 1, YELLOW);
 				DrawCircleLines(atomsList[i].pos.x + 1, atomsList[i].pos.y + 1, centering + 2, YELLOW);
@@ -500,7 +500,6 @@ int main(int argc, char** argv) {
     }
 
 
-    CloseWindow();        
 	
 	UnloadTexture(textureProton);
 	UnloadTexture(textureElectron);

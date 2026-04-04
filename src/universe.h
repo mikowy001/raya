@@ -1,7 +1,7 @@
 #ifndef RAYA_UNIVERSE_H
 #define RAYA_UNIVERSE_H
 
-#include <raylib.h>
+#include "./raylib.h"
 #include <raymath.h>
 
 #include <stdbool.h>
@@ -15,10 +15,7 @@ typedef struct {
 	int charge;
     int rot;
 	float size;
-	bool selected;
-	bool padding1;
-	bool padding2;
-	bool padding3;
+	int selected;
 } atom;
 
 typedef struct {
