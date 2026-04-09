@@ -5,7 +5,7 @@ INCLUDE_DIR = include
 
 
 CC = gcc
-CFLAGS = -Wall -Wextra -I./src -O2 -DGRAPHICS_API_OPENGL_43
+CFLAGS = -Wall -Wextra -I./src -O2 
 LIBS = -L$(INCLUDE_DIR) -lraylib -lm
 
 SRCS := $(shell find src -name "*.c")
