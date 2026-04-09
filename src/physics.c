@@ -44,7 +44,7 @@ void initComputeShader() {
         if (shaderCompute.id == 0) {
             TraceLog(LOG_ERROR, "Shader error !!!");
         } else {
-            TraceLog(LOG_INFO, "COMPUTE SHADER LOADED: ID %d", shaderCompute.id);
+            TraceLog(LOG_INFO, "[INFO] COMPUTE SHADER LOADED: ID %d", shaderCompute.id);
         }
     }
 }
