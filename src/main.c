@@ -1,6 +1,8 @@
 #include <math.h>
 
 #include "./universe.h"
+#include "raylib.h"
+#include <raymath.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -340,6 +342,16 @@ void arrowMoving(){
 
 		}
 }
+
+void setVelZero() {
+	if(IsKeyDown(KEY_ZERO)){
+		for(int i = 0; i < atomCount; i++){
+			if(atomsList[i].selected == true){
+				atomsList[i].vel = (Vector2){0, 0};
+			}
+		}
+	}
+}
 void debugActions(){
 	if(IsKeyDown(KEY_F1)){
 		for(size_t i = 0; i < atomCount; i++){
@@ -386,10 +398,6 @@ int main(int argc, char** argv) {
 
 	
 	
-	atomSpawn((Vector2){250, 250}, 1, 0, 1, false);
-	atomsList[0].pos = (Vector2){100, 100};
-	atomsList[0].size = 25;
-
 	ssbo = rlLoadShaderBuffer(sizeof(atom) * atomCount, atomsList, RL_DYNAMIC_COPY);
 
 	double startTime = GetTime();
