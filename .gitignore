@@ -1,0 +1,6 @@
+compiled/raya
+include/libraylib.a
+obj/camera.o
+obj/dataInit.o
+obj/main.o
+obj/physics.o
