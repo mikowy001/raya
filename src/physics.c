@@ -1,52 +1,53 @@
-#include "./universe.h"
+#include "./functions.h"
+#include "./coredata.h"
 
 void atomPhysics() {
-  if (atomCount == 0)
-    return;
+	if(DATA.Atoms.atomsCount == 0)
+		return;
 
-  float dt = GetFrameTime();
+	float dt = GetFrameTime();
 
-  rlEnableShader(shaderCompute.id);
+	rlEnableShader(DATA.Shaders.shaderCompute.id);
 
-  rlUpdateShaderBuffer(ssbo, atomsList, sizeof(atom) * atomCount, 0);
+	rlUpdateShaderBuffer(DATA.Shaders.ssbo, DATA.Atoms.atomsList, sizeof(atom) * DATA.Atoms.atomsCount, 0);
 
-  SetShaderValue(shaderCompute, dtLoc, &dt, SHADER_UNIFORM_FLOAT);
-  SetShaderValue(shaderCompute, countLoc, &atomCount, SHADER_UNIFORM_INT);
+	SetShaderValue(DATA.Shaders.shaderCompute, DATA.Shaders.dtLoc, &dt, SHADER_UNIFORM_FLOAT);
+	SetShaderValue(DATA.Shaders.shaderCompute, DATA.Shaders.countLoc, &DATA.Atoms.atomsCount, SHADER_UNIFORM_INT);
 
-  // TraceLog(LOG_INFO, "dtLock:%d      countLoc:%d",
-  // GetShaderLocation(shaderCompute, &dtLoc), GetShaderLocation(shaderCompute,
-  // &countLoc));
+	// TraceLog(LOG_INFO, "dtLock:%d			countLoc:%d",
+	// GetShaderLocation(shaderCompute, &dtLoc), GetShaderLocation(shaderCompute,
+	// &countLoc));
 
-  rlBindShaderBuffer(ssbo, 0);
-  rlComputeShaderDispatch((atomCount / 64) + 1, 1, 1);
-  rlReadShaderBuffer(ssbo, atomsList, sizeof(atom) * atomCount, 0);
+	rlBindShaderBuffer(DATA.Shaders.ssbo, 0);
+	rlComputeShaderDispatch((DATA.Atoms.atomsCount / 64) + 1, 1, 1);
+	rlReadShaderBuffer(DATA.Shaders.ssbo, DATA.Atoms.atomsList, sizeof(atom) * DATA.Atoms.atomsCount, 0);
 
-  rlDisableShader();
+	rlDisableShader();
 
-  // TraceLog(LOG_INFO, "shader id: %d", shaderCompute.id);
+	// TraceLog(LOG_INFO, "shader id: %d", shaderCompute.id);
 }
 
 void updateSSBO() {
-  rlUnloadShaderBuffer(ssbo);
-  ssbo =
-      rlLoadShaderBuffer(sizeof(atom) * atomCount, atomsList, RL_DYNAMIC_COPY);
-  TraceLog(LOG_INFO, "realocated ssbo !!!!!!!!!!!!!!!!!!!!!!!");
+	rlUnloadShaderBuffer(DATA.Shaders.ssbo);
+	DATA.Shaders.ssbo =
+			rlLoadShaderBuffer(sizeof(atom) * DATA.Atoms.atomsCount, DATA.Atoms.atomsList, RL_DYNAMIC_COPY);
+	TraceLog(LOG_INFO, "realocated ssbo !!!!!!!!!!!!!!!!!!!!!!!");
 }
 
 void initComputeShader() {
-  char *code = LoadFileText("src/compute.glsl");
-  if (code != NULL) {
-    int shaderData = rlCompileShader(code, RL_COMPUTE_SHADER);
+	char *code = LoadFileText("src/compute.glsl");
+	if (code != NULL) {
+		int shaderData = rlCompileShader(code, RL_COMPUTE_SHADER);
 
-    shaderCompute.id = rlLoadComputeShaderProgram(shaderData);
+		DATA.Shaders.shaderCompute.id = rlLoadComputeShaderProgram(shaderData);
 
-    UnloadFileText(code);
+		UnloadFileText(code);
 
-    if (shaderCompute.id == 0) {
-      TraceLog(LOG_ERROR, "Shader error !!!");
-    } else {
-      TraceLog(LOG_INFO, "[INFO] COMPUTE SHADER LOADED: ID %d",
-               shaderCompute.id);
-    }
-  }
+		if (DATA.Shaders.shaderCompute.id == 0) {
+			TraceLog(LOG_ERROR, "Shader error !!!");
+		} else {
+			TraceLog(LOG_INFO, "[INFO] COMPUTE SHADER LOADED: ID %d",
+							 DATA.Shaders.shaderCompute.id);
+		}
+	}
 }
