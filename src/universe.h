@@ -1,40 +1,41 @@
 #ifndef RAYA_UNIVERSE_H
 #define RAYA_UNIVERSE_H
 
+#include "../include/raylib.h"
 #include "./raylib.h"
-#include <raymath.h>
 
+#include "../include/raymath.h"
+#include "../include/rlgl.h"
 #include <stdbool.h>
 #include <stddef.h>
-#include <rlgl.h>
 
-//core data
+// core data
 typedef struct {
-	Vector2 pos;
-	Vector2 vel;
-	int charge;
-    int rot;
-	float size;
-	int selected;
+  Vector2 pos;
+  Vector2 vel;
+  int charge;
+  int rot;
+  float size;
+  int selected;
 } atom;
 
 typedef struct {
-	int count;
-	int charge;
-	bool typing;
+  int count;
+  int charge;
+  bool typing;
 } multiSpawningInfo;
 
-//GLOBAL SETTINGS !!!
+// GLOBAL SETTINGS !!!
 extern int mouseWheelSensivity;
-//arrow moving
+// arrow moving
 extern float movementSpeed;
 extern float rotationSpeed;
-//spawningUI SETTINGS
-#define MAXINPUTCHARS  50
+// spawningUI SETTINGS
+#define MAXINPUTCHARS 50
 extern float selectionDuration;
-//rendering SETTINGS
+// rendering SETTINGS
 
-//KEYBINDS !!!
+// KEYBINDS !!!
 extern int AddKey;
 extern int selectKey;
 extern int deleteKey;
@@ -49,13 +50,13 @@ extern int camZoomIn;
 
 extern int pauseKey;
 
-//physics SETTINGS
+// physics SETTINGS
 extern int newtonianConst;
 
-//info texts SETTINGS
+// info texts SETTINGS
 extern int paddingTop;
 
-extern atom* atomsList;
+extern atom *atomsList;
 extern size_t atomCount;
 
 extern bool isPaused;
@@ -67,13 +68,13 @@ extern float halfScreenHeight;
 
 extern Camera2D camera;
 
-//SHADERSSSSSSSSSSs
+// SHADERSSSSSSSSSSs
 extern Shader shaderCompute;
 extern int dtLoc;
 extern int countLoc;
 extern unsigned int ssbo;
 
-//physics
+// physics
 void atomPhysics();
 void initCamera();
 void cameraControls();

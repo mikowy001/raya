@@ -2,521 +2,497 @@
 
 #include "./universe.h"
 #include "raylib.h"
-#include <raymath.h>
+#include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 
+Vector2 randomInCircle(Vector2 center, float radius) {
+  float theta = (float)GetRandomValue(0, 360) * DEG2RAD;
+  float r = sqrtf(GetRandomValue(1, radius * radius));
 
+  Vector2 toReturn = (Vector2){(float)center.x + r * cosf(theta),
+                               (float)center.y + r * sinf(theta)};
 
-
-Vector2 randomInCircle(Vector2 center, float radius){
-	float theta = (float)GetRandomValue(0, 360) * DEG2RAD;
-	float r = sqrtf(GetRandomValue(1, radius * radius));
-
-	Vector2 toReturn = (Vector2){(float)center.x + r * cosf(theta), (float)center.y + r * sinf(theta)};
-
-	return toReturn;
+  return toReturn;
 }
 
 void atomSpawn(Vector2 pos, int charge, int rotation, int count, bool random) {
-	
-	atomsList = realloc(atomsList, (atomCount + count) * sizeof(atom));
-	
-	if(!atomsList) {
-		assert("ERROR: MALLOC EXPLODED: check atom array setup in atomSpawn");
-		exit(EXIT_FAILURE);
-	}
-	
 
-	for(int i = 0; i < count; i++){
-		
-		if(random){
-			atomsList[atomCount + i].pos = randomInCircle(GetMousePosition(), scrollActionSpeed);
-		} 
-		if(!random){
-			atomsList[atomCount + i].pos = pos;
-		}
+  atomsList = realloc(atomsList, (atomCount + count) * sizeof(atom));
 
-		atomsList[atomCount + i].charge = charge;
-		atomsList[atomCount + i].rot = rotation;
-	
-		switch(charge){
-			case 1:
-				atomsList[atomCount + i].size = 25;
-				break;
-			case 0:
-				atomsList[atomCount + i].size = 25;
-				break;
-			case -1:
-				atomsList[atomCount + i].size = 10;
-				break;
-			default: {
-				assert("ERROR: INVALID CHARGE AT SPAWNING ATOM");
-				exit(EXIT_FAILURE);
-			}
-		}
-		atomsList[atomCount + i].selected = 0;
-		atomsList[atomCount + i].vel = (Vector2){0, 0};
+  if (!atomsList) {
+    assert("ERROR: MALLOC EXPLODED: check atom array setup in atomSpawn");
+    exit(EXIT_FAILURE);
+  }
 
-	}
+  for (int i = 0; i < count; i++) {
 
-	atomCount = atomCount + count;
-	updateSSBO();
-	//TraceLog(LOG_INFO, "debug: %d", scrollActionSpeed);  debug
-	TraceLog(LOG_INFO, "DZIALA TUTAJ");
-	
+    if (random) {
+      atomsList[atomCount + i].pos = randomInCircle(GetMousePosition(), scrollActionSpeed);
+    }
+    if (!random) {
+      atomsList[atomCount + i].pos = pos;
+    }
+
+    atomsList[atomCount + i].charge = charge;
+    atomsList[atomCount + i].rot = rotation;
+
+    switch (charge) {
+    case 1:
+      atomsList[atomCount + i].size = 25;
+      break;
+    case 0:
+      atomsList[atomCount + i].size = 25;
+      break;
+    case -1:
+      atomsList[atomCount + i].size = 10;
+      break;
+    default: {
+      assert("ERROR: INVALID CHARGE AT SPAWNING ATOM");
+      exit(EXIT_FAILURE);
+    }
+    }
+    atomsList[atomCount + i].selected = 0;
+    atomsList[atomCount + i].vel = (Vector2){0, 0};
+  }
+
+  atomCount = atomCount + count;
+  updateSSBO();
+  // TraceLog(LOG_INFO, "debug: %d", scrollActionSpeed);  debug
+  TraceLog(LOG_INFO, "DZIALA TUTAJ");
 }
 
 void atomDelete(size_t index) {
-    if (index >= atomCount) return;
+  if (index >= atomCount)
+    return;
 
-    for (size_t i = index; i < atomCount - 1; i++) {
-        atomsList[i] = atomsList[i + 1];
+  for (size_t i = index; i < atomCount - 1; i++) {
+    atomsList[i] = atomsList[i + 1];
+  }
+
+  atomCount--;
+
+  if (atomCount > 0) {
+    atom *temp = realloc(atomsList, sizeof(atom) * atomCount);
+    if (temp != NULL) {
+      atomsList = temp;
     }
+  } else {
+    free(atomsList);
+    atomsList = NULL;
+  }
+}
 
-    atomCount--;
-
-    if (atomCount > 0) {
-        atom* temp = realloc(atomsList, sizeof(atom) * atomCount);
-        if (temp != NULL) {
-            atomsList = temp;
-        }
+void circleSelect() {
+  if (!isPaused) {
+    if (scrollActionSpeed >= 2) {
+      scrollActionSpeed += GetMouseWheelMove() * mouseWheelSensivity;
     } else {
-        free(atomsList);
-        atomsList = NULL;
+      scrollActionSpeed = 2;
     }
-}
+    Vector2 circleCenter = GetMousePosition();
 
-void circleSelect(){
-		if(!isPaused){
-			if(scrollActionSpeed >= 2 ){
-				scrollActionSpeed += GetMouseWheelMove() * mouseWheelSensivity;
-			} else 	{
-			scrollActionSpeed = 2;
-			}
-		Vector2 circleCenter = GetMousePosition();
-		
-		//TraceLog(LOG_INFO, "mousewheel: %d", selectorSize);   debug for printing out the selection circle size
-		
-		int selected = 0;
-			if(IsKeyDown(KEY_LEFT_SHIFT)){
-				TraceLog(LOG_INFO, "%.1f, %.1f vecttisr mouse", GetMousePosition().x, GetMousePosition().y);
-				if(IsKeyPressed(selectKey)){
-					for(int i = 0; i < (int)atomCount; i++){
-						if(CheckCollisionPointCircle(atomsList[i].pos, GetScreenToWorld2D(circleCenter, camera), scrollActionSpeed / camera.zoom)){
-							atomsList[i].selected = true;
-							selected++;
-						}
-					}
-				TraceLog(LOG_INFO, "t:%.1f    Added to selection %d atoms", GetTime(), selected);
-				}
-		
-			}
-			if(!IsKeyDown(KEY_LEFT_SHIFT)){
+    // TraceLog(LOG_INFO, "mousewheel: %d", selectorSize);   debug for printing
+    // out the selection circle size
 
-				if(IsKeyPressed(selectKey)){
-					for(int i = 0; i < (int)atomCount; i++){
-						atomsList[i].selected = 0;
-						if(CheckCollisionPointCircle(atomsList[i].pos, 
-									GetScreenToWorld2D(circleCenter, camera),
-									scrollActionSpeed / camera.zoom)){
-							atomsList[i].selected = 1;
-							selected++;
-						}
-					}
-				TraceLog(LOG_INFO, "t:%.1f    Selected %d atoms", GetTime(), selected);
-				}
-		
-			}
-		}
-	
-	 
-}
-
-multiSpawningInfo spawningUI(double elapsed, bool reset){
-	static char inputString[MAXINPUTCHARS + 1] = "\0";
-	static int currentDigitCount = 0;
-	if(reset){
-		for(int i = 0; i < MAXINPUTCHARS + 1; i++) {
-			inputString[i] = ' ';
-			currentDigitCount = 0;
-		}
-		TraceLog(LOG_INFO, "RESETED STRING");
-	}
-	bool typing = true;
-	Rectangle textBox = (Rectangle){5, 5, GetScreenWidth() - 10, 25};
-	static int frameCounter = 0;
-	(void)frameCounter;
-	
-	int key = GetCharPressed();
-	while (key > 0) {
-		if ((key >= 48) && (key <= 57) && (currentDigitCount < MAXINPUTCHARS)){
-        	inputString[currentDigitCount] = (char)key;
-            inputString[currentDigitCount + 1] = '\0';                     
-			currentDigitCount++;
+    int selected = 0;
+    if (IsKeyDown(KEY_LEFT_SHIFT)) {
+      TraceLog(LOG_INFO, "%.1f, %.1f vecttisr mouse", GetMousePosition().x, GetMousePosition().y);
+      if (IsKeyPressed(selectKey)) {
+        for (int i = 0; i < (int)atomCount; i++) {
+          if (CheckCollisionPointCircle(atomsList[i].pos, GetScreenToWorld2D(circleCenter, camera), scrollActionSpeed / camera.zoom)) {
+            atomsList[i].selected = true;
+            selected++;
+          }
         }
+        TraceLog(LOG_INFO, "t:%.1f    Added to selection %d atoms", GetTime(),selected);
+      }
+    }
+    if (!IsKeyDown(KEY_LEFT_SHIFT)) {
 
-		key = GetCharPressed(); 
-	}
-	
-    if (IsKeyPressed(KEY_BACKSPACE)){
-		currentDigitCount--;
-		if (currentDigitCount < 0) currentDigitCount = 0;
-        inputString[currentDigitCount] = '\0';
-	}
-	
-	DrawText(inputString, 10, 14, 16 ,WHITE);
-	DrawRectangleRoundedLines(textBox, 0.4f, 1, WHITE);
-	DrawLineEx(
-			(Vector2){10, 30}, 
-			(Vector2){(GetScreenWidth() - 10) - (elapsed/selectionDuration * (GetScreenWidth() - 20)), 30}, 
-			2.0f, RED);
-	int countToReturn = atoi(inputString);
-	multiSpawningInfo returnThing = (multiSpawningInfo){countToReturn, 0, typing};
-	return returnThing;
+      if (IsKeyPressed(selectKey)) {
+        for (int i = 0; i < (int)atomCount; i++) {
+          atomsList[i].selected = 0;
+          if (CheckCollisionPointCircle(atomsList[i].pos, GetScreenToWorld2D(circleCenter, camera), scrollActionSpeed / camera.zoom)) {
+            atomsList[i].selected = 1;
+            selected++;
+          }
+        }
+        TraceLog(LOG_INFO, "t:%.1f    Selected %d atoms", GetTime(), selected);
+      }
+    }
+  }
+}
+
+multiSpawningInfo spawningUI(double elapsed, bool reset) {
+  static char inputString[MAXINPUTCHARS + 1] = "\0";
+  static int currentDigitCount = 0;
+  if (reset) {
+    for (int i = 0; i < MAXINPUTCHARS + 1; i++) {
+      inputString[i] = ' ';
+      currentDigitCount = 0;
+    }
+    TraceLog(LOG_INFO, "RESETED STRING");
+  }
+  bool typing = true;
+  Rectangle textBox = (Rectangle){5, 5, GetScreenWidth() - 10, 25};
+  static int frameCounter = 0;
+  (void)frameCounter;
+
+  int key = GetCharPressed();
+  while (key > 0) {
+    if ((key >= 48) && (key <= 57) && (currentDigitCount < MAXINPUTCHARS)) {
+      inputString[currentDigitCount] = (char)key;
+      inputString[currentDigitCount + 1] = '\0';
+      currentDigitCount++;
+    }
+
+    key = GetCharPressed();
+  }
+
+  if (IsKeyPressed(KEY_BACKSPACE)) {
+    currentDigitCount--;
+    if (currentDigitCount < 0)
+      currentDigitCount = 0;
+    inputString[currentDigitCount] = '\0';
+  }
+
+  DrawText(inputString, 10, 14, 16, WHITE);
+  DrawRectangleRoundedLines(textBox, 0.4f, 1, WHITE);
+  DrawLineEx((Vector2){10, 30},
+             (Vector2){(GetScreenWidth() - 10) - (elapsed / selectionDuration *
+                                                  (GetScreenWidth() - 20)),30}, 2.0f, RED);
+  int countToReturn = atoi(inputString);
+  multiSpawningInfo returnThing = (multiSpawningInfo){countToReturn, 0, typing};
+  return returnThing;
 }
 
 short selectingChargeUI(double elapsed, bool reset) {
-	(void)reset;
-		short selectedCharge = 1;
-		bool chosen = false;
-		if(IsKeyPressed(KEY_ONE)){
-			selectedCharge = 1;
-			chosen = true;
-		}
-		if(IsKeyPressed(KEY_TWO)){
-			selectedCharge = 0;
-			chosen = true;
-		}
-		if(IsKeyPressed(KEY_THREE)){
-			selectedCharge = -1;
-			chosen = true;
-		}
-		Rectangle textBox = (Rectangle){5, 5, GetScreenWidth() - 10, 25};
-		DrawRectangleRoundedLines(textBox, 0.4f, 1, WHITE);
-		DrawLineEx(
-				(Vector2){10, 30},
-				(Vector2){(GetScreenWidth() - 10) - (elapsed/selectionDuration * GetScreenWidth() - 20), 30},
-				2.0f, RED);
+  (void)reset;
+  short selectedCharge = 1;
+  bool chosen = false;
+  if (IsKeyPressed(KEY_ONE)) {
+    selectedCharge = 1;
+    chosen = true;
+  }
+  if (IsKeyPressed(KEY_TWO)) {
+    selectedCharge = 0;
+    chosen = true;
+  }
+  if (IsKeyPressed(KEY_THREE)) {
+    selectedCharge = -1;
+    chosen = true;
+  }
+  Rectangle textBox = (Rectangle){5, 5, GetScreenWidth() - 10, 25};
+  DrawRectangleRoundedLines(textBox, 0.4f, 1, WHITE);
+  DrawLineEx((Vector2){10, 30},(Vector2){(GetScreenWidth() - 10) - (elapsed / selectionDuration * GetScreenWidth() - 20), 30}, 2.0f, RED);
 
-		if(chosen){
-			return selectedCharge;
-		}
-		else {
-			return -10;
-		}
+  if (chosen) {
+    return selectedCharge;
+  } else {
+    return -10;
+  }
 }
-
 
 void atomSpawning() {
-	
-	// "A" key for spawning an atom
-	
-	static double selectionStartTime = 0.0f;  
-      
-	
-	short spawningCharge = 1;
-	static bool chosen;
-	static bool shiftWasPressed;
 
-	static bool enteringNumbers;
-	static bool selectingCharge;
-	
-	if(IsKeyDown(KEY_LEFT_SHIFT)){
-		shiftWasPressed = true;
-	}
+  // "A" key for spawning an atom
 
-	if(IsKeyPressed(AddKey)){
-		selectionStartTime = GetTime();
-		if(shiftWasPressed){
-			enteringNumbers = true;
-			selectingCharge = false;
-		} else {
-			enteringNumbers = false;
-			selectingCharge = true;
-		}
-	}
-	static unsigned int spawningCount;
-	if(enteringNumbers){
-		double elapsed = GetTime() - selectionStartTime;
-		SetMouseCursor(MOUSE_CURSOR_IBEAM);
-		multiSpawningInfo spawningInfo = spawningUI(elapsed, false);
-		spawningCount = spawningInfo.count; // how many atoms to spawn
-		
-		if(elapsed >= selectionDuration) { // if timer ends
-			enteringNumbers = false;
-			shiftWasPressed = false;
-			selectingCharge = true;
-			SetMouseCursor(MOUSE_CURSOR_DEFAULT);
-			spawningUI(elapsed, true);
-			if(spawningCount == 0){
-				spawningCount = 1;
-			}
-			selectionStartTime = GetTime();
-		} 
-		if(IsKeyPressed(KEY_ENTER)) { // if user selects number to spawn
-			enteringNumbers = false;
-			shiftWasPressed = false;
-			selectingCharge = true;
-			SetMouseCursor(MOUSE_CURSOR_DEFAULT);
-			spawningUI(elapsed, true);
-			//TraceLog(LOG_INFO, "enter: %d", spawningCount);
-			selectionStartTime = GetTime();
-			if(spawningCount == 0){
-				spawningCount = 1;
-			}
-		}
+  static double selectionStartTime = 0.0f;
 
-}
-	short chargeToSpawn = -10;
-	if(selectingCharge) {
-		
-		double elapsed = GetTime() - selectionStartTime;
-		chargeToSpawn = selectingChargeUI(elapsed, false);
-		if(elapsed >= selectionDuration) {
-			selectingCharge = false;
-			chargeToSpawn = 0;
-			chosen = false;
-		}
-		if(chargeToSpawn > -10){
-			chosen = true;
-		}
+  short spawningCharge = 1;
+  static bool chosen;
+  static bool shiftWasPressed;
 
-	}  
-	if (chosen == true) {
-		selectingCharge = false;
-		
-		atomSpawn(randomInCircle(GetMousePosition(), scrollActionSpeed), chargeToSpawn, 0, spawningCount, true);
-		
-		chosen = false;
-		
-		TraceLog(LOG_INFO, "t:%.1f    Spawned %d atoms, charge: %d", GetTime(), spawningCount, spawningCharge);
-		spawningCount = 0;
-	}
+  static bool enteringNumbers;
+  static bool selectingCharge;
+
+  if (IsKeyDown(KEY_LEFT_SHIFT)) {
+    shiftWasPressed = true;
+  }
+
+  if (IsKeyPressed(AddKey)) {
+    selectionStartTime = GetTime();
+    if (shiftWasPressed) {
+      enteringNumbers = true;
+      selectingCharge = false;
+    } else {
+      enteringNumbers = false;
+      selectingCharge = true;
+    }
+  }
+  static unsigned int spawningCount;
+  if (enteringNumbers) {
+    double elapsed = GetTime() - selectionStartTime;
+    SetMouseCursor(MOUSE_CURSOR_IBEAM);
+    multiSpawningInfo spawningInfo = spawningUI(elapsed, false);
+    spawningCount = spawningInfo.count; // how many atoms to spawn
+
+    if (elapsed >= selectionDuration) { // if timer ends
+      enteringNumbers = false;
+      shiftWasPressed = false;
+      selectingCharge = true;
+      SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+      spawningUI(elapsed, true);
+      if (spawningCount == 0) {
+        spawningCount = 1;
+      }
+      selectionStartTime = GetTime();
+    }
+    if (IsKeyPressed(KEY_ENTER)) { // if user selects number to spawn
+      enteringNumbers = false;
+      shiftWasPressed = false;
+      selectingCharge = true;
+      SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+      spawningUI(elapsed, true);
+      // TraceLog(LOG_INFO, "enter: %d", spawningCount);
+      selectionStartTime = GetTime();
+      if (spawningCount == 0) {
+        spawningCount = 1;
+      }
+    }
+  }
+  short chargeToSpawn = -10;
+  if (selectingCharge) {
+
+    double elapsed = GetTime() - selectionStartTime;
+    chargeToSpawn = selectingChargeUI(elapsed, false);
+    if (elapsed >= selectionDuration) {
+      selectingCharge = false;
+      chargeToSpawn = 0;
+      chosen = false;
+    }
+    if (chargeToSpawn > -10) {
+      chosen = true;
+    }
+  }
+  if (chosen == true) {
+    selectingCharge = false;
+
+    atomSpawn(randomInCircle(GetMousePosition(), scrollActionSpeed), chargeToSpawn, 0, spawningCount, true);
+
+    chosen = false;
+
+    TraceLog(LOG_INFO, "t:%.1f    Spawned %d atoms, charge: %d", GetTime(), spawningCount, spawningCharge);
+    spawningCount = 0;
+  }
 }
 
-void arrowMoving(){
-		if(!isPaused) {
-			
-			movementSpeed = scrollActionSpeed / 4;
-			if(IsKeyDown(KEY_UP)) {
-				for(int i = 0; i < (int)atomCount; i++){
-						if(atomsList[i].selected == 1) {
-							atomsList[i].vel.y = atomsList[i].vel.y - movementSpeed;
-						}
-				}
-			}
-			if(IsKeyDown(KEY_DOWN)) {
-				for(int i = 0; i < (int)atomCount; i++){
-						if(atomsList[i].selected == 1) {
-							atomsList[i].vel.y = atomsList[i].vel.y + movementSpeed;
-						}
-				}
-			}
-			if(IsKeyDown(KEY_LEFT)) {
-				for(int i = 0; i < (int)atomCount; i++){
-						if(atomsList[i].selected == 1) {
-							atomsList[i].vel.x = atomsList[i].vel.x - movementSpeed;
-						}
-				}
-			}
-			if(IsKeyDown(KEY_RIGHT)) {
-				for(int i = 0; i < (int)atomCount; i++){
-						if(atomsList[i].selected == 1) {
-							atomsList[i].vel.x = atomsList[i].vel.x + movementSpeed;
-						}
-				}
-			}
+void arrowMoving() {
+  if (!isPaused) {
 
+    movementSpeed = scrollActionSpeed / 4;
+    if (IsKeyDown(KEY_UP)) {
+      for (int i = 0; i < (int)atomCount; i++) {
+        if (atomsList[i].selected == 1) {
+          atomsList[i].vel.y = atomsList[i].vel.y - movementSpeed;
+        }
+      }
+    }
+    if (IsKeyDown(KEY_DOWN)) {
+      for (int i = 0; i < (int)atomCount; i++) {
+        if (atomsList[i].selected == 1) {
+          atomsList[i].vel.y = atomsList[i].vel.y + movementSpeed;
+        }
+      }
+    }
+    if (IsKeyDown(KEY_LEFT)) {
+      for (int i = 0; i < (int)atomCount; i++) {
+        if (atomsList[i].selected == 1) {
+          atomsList[i].vel.x = atomsList[i].vel.x - movementSpeed;
+        }
+      }
+    }
+    if (IsKeyDown(KEY_RIGHT)) {
+      for (int i = 0; i < (int)atomCount; i++) {
+        if (atomsList[i].selected == 1) {
+          atomsList[i].vel.x = atomsList[i].vel.x + movementSpeed;
+        }
+      }
+    }
 
-			//TODO rotate the selected atoms while using mouse as center  
-			
-			if(IsKeyDown(KEY_Q)) { 
-				atomsList[0].rot = atomsList[0].rot - rotationSpeed; 
-			}
-			if(IsKeyDown(KEY_E)) { 
-				atomsList[0].rot = atomsList[0].rot + rotationSpeed; 
-			}
+    // TODO rotate the selected atoms while using mouse as center
 
-		}
+    if (IsKeyDown(KEY_Q)) {
+      atomsList[0].rot = atomsList[0].rot - rotationSpeed;
+    }
+    if (IsKeyDown(KEY_E)) {
+      atomsList[0].rot = atomsList[0].rot + rotationSpeed;
+    }
+  }
 }
 
 void setVelZero() {
-	if(IsKeyDown(KEY_ZERO)){
-		for(int i = 0; i < atomCount; i++){
-			if(atomsList[i].selected == true){
-				atomsList[i].vel = (Vector2){0, 0};
-			}
-		}
-	}
+  if (IsKeyDown(KEY_ZERO)) {
+    for (int i = 0; i < atomCount; i++) {
+      if (atomsList[i].selected == true) {
+        atomsList[i].vel = (Vector2){0, 0};
+      }
+    }
+  }
 }
-void debugActions(){
-	if(IsKeyDown(KEY_F1)){
-		for(size_t i = 0; i < atomCount; i++){
-			DrawPixel(atomsList[i].pos.x, atomsList[i].pos.y, GREEN);  //press F1 to see the atoms center
-		}
-	}
-}
-
-void deleteSelectedAtoms(){
-	if(IsKeyPressed(deleteKey)){
-		for(size_t i = 0; i < atomCount; i++){
-			if(atomsList[i].selected == 1){
-				atomDelete(i);		
-			}
-		}
-	}
+void debugActions() {
+  if (IsKeyDown(KEY_F1)) {
+    for (size_t i = 0; i < atomCount; i++) {
+      DrawPixel(atomsList[i].pos.x, atomsList[i].pos.y,
+                GREEN); // press F1 to see the atoms center
+    }
+  }
 }
 
-void userActions(){
-	circleSelect();
-	arrowMoving();
-	cameraControls();
+void deleteSelectedAtoms() {
+  if (IsKeyPressed(deleteKey)) {
+    for (size_t i = 0; i < atomCount; i++) {
+      if (atomsList[i].selected == 1) {
+        atomDelete(i);
+      }
+    }
+  }
 }
 
-int main(int argc, char** argv) {
-	(void)argc;
-	
-	(void)argv;
-	
-    const int screenWidth = 800;
-    const int screenHeight = 800;
-	
-	SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_MSAA_4X_HINT | FLAG_VSYNC_HINT | FLAG_WINDOW_HIGHDPI);
-    InitWindow(screenWidth, screenHeight, "raya");
-	
+void userActions() {
+  circleSelect();
+  arrowMoving();
+  cameraControls();
+}
 
-	
+int main(int argc, char **argv) {
+  (void)argc;
 
-	initComputeShader();
-	dtLoc = GetShaderLocation(shaderCompute, "dt");
-	(void)dtLoc;
-	countLoc = GetShaderLocation(shaderCompute, "particleCount");
-	(void)countLoc;
+  (void)argv;
 
-	
-	
-	ssbo = rlLoadShaderBuffer(sizeof(atom) * atomCount, atomsList, RL_DYNAMIC_COPY);
+  const int screenWidth = 800;
+  const int screenHeight = 800;
 
-	double startTime = GetTime();
-	double pausedTime = 0.0;
-	double totalPausedDuration = 0.0;
+  SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_MSAA_4X_HINT | FLAG_VSYNC_HINT);
+  InitWindow(screenWidth, screenHeight, "raya");
 
-	scrollActionSpeed = 32;
-	
-	SetExitKey(KEY_NULL);
+  initComputeShader();
+  dtLoc = GetShaderLocation(shaderCompute, "dt");
+  (void)dtLoc;
+  countLoc = GetShaderLocation(shaderCompute, "particleCount");
+  (void)countLoc;
 
-	Texture2D textureProton = LoadTexture("assets/proton.png");
-	Texture2D textureNeutron = LoadTexture("assets/neutron.png");
-	Texture2D textureElectron = LoadTexture("assets/electron.png");
+  ssbo = rlLoadShaderBuffer(sizeof(atom) * atomCount, atomsList, RL_DYNAMIC_COPY);
 
-	initCamera();
+  double startTime = GetTime();
+  double pausedTime = 0.0;
+  double totalPausedDuration = 0.0;
 
-	SetTraceLogLevel(LOG_INFO);  // some thhing for logs
+  scrollActionSpeed = 32;
 
-    SetTargetFPS(60);
-	
-	
-    while(!WindowShouldClose()) {	
-		if(IsKeyPressed(pauseKey)){
-			if(isPaused) {
-				totalPausedDuration += GetTime() - pausedTime;
-				isPaused = false;
-			}
-			else {
-				pausedTime = GetTime();
-				isPaused = true;
-			}
-		}
-		
-		halfScreenWidth = (float){GetScreenWidth()} / 2;
-		halfScreenHeight = (float){GetScreenHeight()} / 2;
-		
+  SetExitKey(KEY_NULL);
 
-		double elapsedTime;
-		if(isPaused) {
-			elapsedTime = pausedTime - startTime - totalPausedDuration;
-		}
-		else {
-			elapsedTime = GetTime() - startTime - totalPausedDuration;
-		}
-		
-		
+  Texture2D textureProton = LoadTexture("assets/proton.png");
+  Texture2D textureNeutron = LoadTexture("assets/neutron.png");
+  Texture2D textureElectron = LoadTexture("assets/electron.png");
 
-	
-   	    BeginDrawing();
+  initCamera();
 
-        ClearBackground(BLACK);
-		
-		atomSpawning();
-		
-		if(!isPaused){
-			atomPhysics();
-		}
-		BeginMode2D(camera);
-		
-		userActions();
+  SetTraceLogLevel(LOG_INFO); // some thhing for logs
 
-		Texture textureToRender;
-		int centering = 0;
-		for(int i = 0; i < (int)atomCount; i++){
-			switch (atomsList[i].charge){
-				case -1:
-					textureToRender = textureElectron;
-					centering = 8;
-					break;
-				case 0:
-					textureToRender = textureNeutron;
-					centering = 16;
-					break;
-				case 1:
-					textureToRender = textureProton;
-					centering = 16;
-					break;
-				default:
-					TraceLog(LOG_INFO, "ERROR: while selecting texture for particle based on charge; invalid charge");
-					break;
-			}
-			DrawTexture(textureToRender, atomsList[i].pos.x - centering + 1, atomsList[i].pos.y - centering + 1, WHITE);
-			if(atomsList[i].selected == 1) {
-				DrawCircleLines(atomsList[i].pos.x + 1, atomsList[i].pos.y + 1, centering, YELLOW);
-				DrawCircleLines(atomsList[i].pos.x + 1, atomsList[i].pos.y + 1, centering + 1, YELLOW);
-				DrawCircleLines(atomsList[i].pos.x + 1, atomsList[i].pos.y + 1, centering + 2, YELLOW);
-			}
+  SetTargetFPS(60);
 
- 		}
-		
-		debugActions();
-		
-		EndMode2D();
-		
-		DrawText(TextFormat("Simulation time %.1f", elapsedTime), 25, paddingTop, 16, WHITE);
-		DrawText(TextFormat("dt: %.3f ms", GetFrameTime() * 1000), 25, (paddingTop - 5) * 2, 16, WHITE);
-		DrawText(TextFormat("Brush size: %.0f px", scrollActionSpeed), 25, (paddingTop - 8) * 3, 16, WHITE);
-		DrawCircleLinesV(GetMousePosition(), scrollActionSpeed, WHITE);
-
-		if(!isPaused) {
-
-		} else {
-			DrawText("Paused! Press P to unpause.", 225, 25, 16, RED);
-		}
-		
-		
-        EndDrawing();
+  while (!WindowShouldClose()) {
+    if (IsKeyPressed(pauseKey)) {
+      if (isPaused) {
+        totalPausedDuration += GetTime() - pausedTime;
+        isPaused = false;
+      } else {
+        pausedTime = GetTime();
+        isPaused = true;
+      }
     }
 
+    halfScreenWidth = (float){GetScreenWidth()} / 2;
+    halfScreenHeight = (float){GetScreenHeight()} / 2;
 
-	
-	UnloadTexture(textureProton);
-	UnloadTexture(textureElectron);
-	UnloadTexture(textureNeutron);
-	free(atomsList);
-    rlUnloadShaderBuffer(ssbo);
-    UnloadShader(shaderCompute);
+    double elapsedTime;
+    if (isPaused) {
+      elapsedTime = pausedTime - startTime - totalPausedDuration;
+    } else {
+      elapsedTime = GetTime() - startTime - totalPausedDuration;
+    }
 
-    CloseWindow();
+    BeginDrawing();
 
-    return 0;
+    ClearBackground(BLACK);
+
+    atomSpawning();
+
+    if (!isPaused) {
+      atomPhysics();
+    }
+    BeginMode2D(camera);
+
+    userActions();
+
+    Texture textureToRender;
+    int centering = 0;
+    for (int i = 0; i < (int)atomCount; i++) {
+      switch (atomsList[i].charge) {
+      case -1:
+        textureToRender = textureElectron;
+        centering = 8;
+        break;
+      case 0:
+        textureToRender = textureNeutron;
+        centering = 16;
+        break;
+      case 1:
+        textureToRender = textureProton;
+        centering = 16;
+        break;
+      default:
+        TraceLog(LOG_INFO, "ERROR: while selecting texture for particle based "
+                           "on charge; invalid charge");
+        break;
+      }
+      DrawTexture(textureToRender, atomsList[i].pos.x - centering + 1,
+                  atomsList[i].pos.y - centering + 1, WHITE);
+      if (atomsList[i].selected == 1) {
+        DrawCircleLines(atomsList[i].pos.x + 1, atomsList[i].pos.y + 1,
+                        centering, YELLOW);
+        DrawCircleLines(atomsList[i].pos.x + 1, atomsList[i].pos.y + 1,
+                        centering + 1, YELLOW);
+        DrawCircleLines(atomsList[i].pos.x + 1, atomsList[i].pos.y + 1,
+                        centering + 2, YELLOW);
+      }
+    }
+
+    debugActions();
+
+    EndMode2D();
+
+    DrawText(TextFormat("Simulation time %.1f", elapsedTime), 25, paddingTop,
+             16, WHITE);
+    DrawText(TextFormat("dt: %.3f ms", GetFrameTime() * 1000), 25,
+             (paddingTop - 5) * 2, 16, WHITE);
+    DrawText(TextFormat("Brush size: %.0f px", scrollActionSpeed), 25,
+             (paddingTop - 8) * 3, 16, WHITE);
+
+    DrawCircleLinesV((Vector2){GetMousePosition().x * GetWindowScaleDPI().x,
+                               GetMousePosition().y * GetWindowScaleDPI().y},
+                     scrollActionSpeed, WHITE);
+
+    if (!isPaused) {
+
+    } else {
+      DrawText("Paused! Press P to unpause.", 225, 25, 16, RED);
+    }
+
+    EndDrawing();
+  }
+
+  UnloadTexture(textureProton);
+  UnloadTexture(textureElectron);
+  UnloadTexture(textureNeutron);
+  free(atomsList);
+  rlUnloadShaderBuffer(ssbo);
+  UnloadShader(shaderCompute);
+
+  CloseWindow();
+
+  return 0;
 }
