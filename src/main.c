@@ -63,7 +63,7 @@ void atomSpawn(Vector2 pos, int charge, int rotation, int count, bool random) {
 	DATA.Atoms.atomsCount = DATA.Atoms.atomsCount + count;
 	updateSSBO();
 	// TraceLog(LOG_INFO, "debug: %d", scrollActionSpeed);	debug
-	TraceLog(LOG_INFO, "DZIALA TUTAJ");
+	TraceLog(LOG_INFO, "ZRESPILO SIE ATOM AHAHAHAHHAHAHAA");
 }
 
 void atomDelete(size_t index) {
@@ -425,6 +425,10 @@ int main() {
 	SetTraceLogLevel(LOG_INFO); // some thhing for logs
 
 	SetTargetFPS(60);
+	
+	//here pre main window loop !!!
+	
+	atomSpawn((Vector2){0,0}, 1, 0, 1, false);
 
 	while (!WindowShouldClose()) {
 		if (IsKeyPressed(DATA.Keybinds.pauseKey)) {
@@ -477,8 +481,7 @@ int main() {
 				centering = 16;
 				break;
 			default:
-				TraceLog(LOG_INFO, "ERROR: while selecting texture for particle based "
-													 "on charge; invalid charge");
+				TraceLog(LOG_INFO, "ERROR: while selecting texture for particle based on charge; invalid charge");
 				break;
 			}
 			DrawTexture(textureToRender, DATA.Atoms.atomsList[i].pos.x - centering + 1,
@@ -496,6 +499,8 @@ int main() {
 		debugActions();
 
 		EndMode2D();
+
+		//TraceLog(LOG_INFO, "%d, %s", DATA.camera.target.x, DATA.camera.target.y);
 
 		DrawText(TextFormat("Simulation time %.1f", elapsedTime), 25, DATA.Settings.paddingTop,
 						 16, WHITE);
